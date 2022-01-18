@@ -1,0 +1,22 @@
+# errorCode json
+{
+    errorCode : #number,
+    message : #Something
+    otherwisse ~
+}
+
+errorCode : 1
+=> 회원가입 실패
+data = { message }
+
+errorCode : 2
+=> 
+data = {}
+
+errorCode : 3
+=> 
+data = {}
+
+errorCode : 4
+=> 
+data = {}
