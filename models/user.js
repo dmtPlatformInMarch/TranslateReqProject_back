@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
         nickname: {
             type: DataTypes.STRING(100),
             allowNull: false,
-        },
+        }, // createdAt, updatedAt 자동생성
     }, {
         // 한글 사용
         charset: 'utf8',
@@ -20,7 +20,8 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     User.associate = (db) => {
-
+        db.User.hasMany(db.Request);
+        db.User.hasMany(db.File);
     };
 
     return User;

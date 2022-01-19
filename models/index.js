@@ -6,6 +6,8 @@ const db = {};
 const sequelize = new Sequelize(config.database, config.username, config.password, config);
 
 db.User = require('./user')(sequelize, Sequelize);
+db.File = require('./file')(sequelize, Sequelize);
+db.Request = require('./request')(sequelize, Sequelize);
 
 Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
