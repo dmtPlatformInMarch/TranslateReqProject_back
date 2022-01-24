@@ -6,11 +6,11 @@ module.exports = (sequelize, DataTypes) => {
             unique: true,
         },
         password: {
-            type: DataTypes.STRING(20),
+            type: DataTypes.STRING(100),
             allowNull: false,
         },
         nickname: {
-            type: DataTypes.STRING(100),
+            type: DataTypes.STRING(20),
             allowNull: false,
         }, // createdAt, updatedAt 자동생성
     }, {
