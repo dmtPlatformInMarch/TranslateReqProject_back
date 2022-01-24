@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const passport = require('passport');
 const db = require('../models');
+const { isNotLoggedIn, isLoggedIn } = require('./middlewares');
 
 const router = express.Router();
 
@@ -9,7 +10,7 @@ router.post('/');
 
 
 // 회원가입
-router.post('/', async (req, res, next) => {
+router.post('/', isNotLoggedIn, async (req, res, next) => {
     try{
         const hash = await bcrypt.hash(req.body.password, 10);
         const exUser = await db.User.findOne({
@@ -39,7 +40,7 @@ router.post('/', async (req, res, next) => {
 
 // 로그인
 // 쿠키 정보는 connect.sid란 이름으로 req.login이 알아서 내려줌.
-router.post('/login', (req, res, next) => {
+router.post('/login', isNotLoggedIn, (req, res, next) => {
     passport.authenticate('local', (err, user, info) => {
         // error 발생
         if (err) {
@@ -63,7 +64,7 @@ router.post('/login', (req, res, next) => {
 });
 
 // 로그아웃
-router.post('/logout', (req, res) => {
+router.post('/logout', isLoggedIn, (req, res) => {
     if(req.isAuthenticated()){
         req.logout();
         // 세션 지우기는 선택

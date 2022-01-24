@@ -8,6 +8,7 @@ const morgan = require('morgan');
 const db = require('./models');
 const passportConfig = require('./passport');
 const userRouter = require('./routes/user');
+const requestRouter = require('./routes/request');
 const app = express();
 
 db.sequelize.sync()
@@ -48,18 +49,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 // 라우터
 app.use('/user', userRouter);
+app.use('/request', requestRouter);
 
 app.get('/', (req, res) => {
     res.status(200).send('Test nodemon');
-});
-
-// 번역 의뢰
-// router 시행 전에는 deSerialUser가 시행된다.
-app.post('/request', (req, res) => {
-    // 로그인 검사
-    if(req.isAuthenticated()) {
-
-    }
 });
 
 // http = 80 포트
