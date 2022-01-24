@@ -37,10 +37,6 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(40),
             allowNull: false,
         },
-        file: {
-            type: DataTypes.STRING(40),
-            allowNull: false,
-        },
         options: {
             type: DataTypes.STRING(40),
             allowNull: false,

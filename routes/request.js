@@ -2,6 +2,8 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 
+const db = require('../models');
+
 const { isLoggedIn } = require('./middlewares');
 
 const router = express.Router();
@@ -32,8 +34,34 @@ router.post('/file', isLoggedIn, upload.single('fileKey'), (req, res) => {
 
 // 번역 의뢰
 // router 시행 전에는 deSerialUser가 시행된다.
-router.post('/', isLoggedIn, (req, res) => {
-    
+router.post('/', isLoggedIn, async (req, res, next) => {
+    try {
+        const newRequest = await db.Request.create({
+            id: req.body.id,
+            name: req.body.name,
+            phone: req.body.phone,
+            email: req.body.email,
+            company: req.body.company,
+            second_phone: req.body.second_phone,
+            date: req.body.date,
+            req_lang: req.body.req_lang,
+            grant_lang: req.body.grant_lang,
+            options: req.body.options,
+            trans_state: req.body.trans_state,
+            UserId: req.user.id
+        })
+        const fullRequest = await db.Request.findOne({
+            where: { id: newRequest.id },
+            include: [{
+                model: db.User,
+                attributes: ['id', 'nickname'],
+            }],
+        });
+        return res.json(fullRequest);
+    } catch (err) {
+        console.error(err);
+        next(err);
+    }
 });
 
 module.exports = router;
