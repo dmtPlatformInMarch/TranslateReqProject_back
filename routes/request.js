@@ -27,16 +27,16 @@ const upload = multer({
 
 // 번역 파일 업로드
 // 의뢰와 파일은 따로 등록을 해야함.
-router.post('/file', isLoggedIn, upload.single('fileKey'), (req, res) => {
-    console.log(req.file);
-    res.json(req.file.filename);
+router.post('/file', isLoggedIn, upload.array('fileKey'), (req, res) => {
+    console.log(req.files);
+    res.json(req.files.map(v => v.filename));
 });
 
 // 번역 의뢰
 // router 시행 전에는 deSerialUser가 시행된다.
 router.post('/', isLoggedIn, async (req, res, next) => {
     try {
-        const newRequest = await db.Request.create({
+        const newRequest = await db.Requests.create({
             id: req.body.id,
             name: req.body.name,
             phone: req.body.phone,
@@ -44,17 +44,27 @@ router.post('/', isLoggedIn, async (req, res, next) => {
             company: req.body.company,
             second_phone: req.body.second_phone,
             date: req.body.date,
-            req_lang: req.body.req_lang,
-            grant_lang: req.body.grant_lang,
             options: req.body.options,
             trans_state: req.body.trans_state,
             UserId: req.user.id
-        })
-        const fullRequest = await db.Request.findOne({
+        });
+        for (let i = 0; i < 5; i++) {
+            if(req.body.req_lang != '' && req.body.grant_lang != '') {
+                const newSubquest = await db.Subrequest.create({
+                    req_lang: req.body.req_lang[i],
+                    grant_lang: req.body.grant_lang[i],
+                    RequestId: newRequest.id,
+                });
+            }
+        }
+        const fullRequest = await db.Requests.findOne({
             where: { id: newRequest.id },
             include: [{
                 model: db.User,
                 attributes: ['id', 'nickname'],
+            },{
+                model: db.Subrequest,
+                attributes: ['req_lang','grant_lang'],
             }],
         });
         return res.json(fullRequest);

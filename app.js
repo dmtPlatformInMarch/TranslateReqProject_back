@@ -11,7 +11,7 @@ const userRouter = require('./routes/user');
 const requestRouter = require('./routes/request');
 const app = express();
 
-db.sequelize.sync()
+db.sequelize.sync({ force: false })
     .then(() => {
         console.log('DB 연결');
     })

@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    const Request = sequelize.define('Request', {
+    const Requests = sequelize.define('Requests', {
         id: {
             type: DataTypes.STRING(40),
             allowNull: false,
@@ -29,16 +29,8 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.DATE,
             allowNull: false,
         },
-        req_lang: {
-            type: DataTypes.STRING(40),
-            allowNull: false,
-        },
-        grant_lang: {
-            type: DataTypes.STRING(40),
-            allowNull: false,
-        },
         options: {
-            type: DataTypes.STRING(40),
+            type: DataTypes.STRING(100),
             allowNull: false,
         },
         trans_state: {
@@ -51,10 +43,11 @@ module.exports = (sequelize, DataTypes) => {
         collate: 'utf8_general_ci',
     });
 
-    Request.associate = (db) => {
-        db.Request.belongsTo(db.User); // column에 UserId 추가
-        db.Request.hasMany(db.File);
+    Requests.associate = (db) => {
+        db.Requests.belongsTo(db.User); // 본인 column에 UserId 추가
+        db.Requests.hasMany(db.File);
+        db.Requests.hasMany(db.Subrequest);
     };
 
-    return Request;
+    return Requests;
 };

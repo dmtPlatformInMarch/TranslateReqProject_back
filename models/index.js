@@ -7,7 +7,8 @@ const sequelize = new Sequelize(config.database, config.username, config.passwor
 
 db.User = require('./user')(sequelize, Sequelize);
 db.File = require('./file')(sequelize, Sequelize);
-db.Request = require('./request')(sequelize, Sequelize);
+db.Subrequest = require('./subrequest')(sequelize, Sequelize);
+db.Requests = require('./requests')(sequelize, Sequelize);
 
 Object.keys(db).forEach(modelName => {
   if (db[modelName].associate) {
