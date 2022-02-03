@@ -6,8 +6,10 @@ const { isNotLoggedIn, isLoggedIn } = require('./middlewares');
 
 const router = express.Router();
 
-router.post('/');
-
+router.get('/', isLoggedIn, async (req, res, next) => {
+    const user = req.user;
+    res.json(user);
+});
 
 // 회원가입
 router.post('/', isNotLoggedIn, async (req, res, next) => {

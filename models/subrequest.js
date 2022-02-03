@@ -7,10 +7,7 @@ module.exports = (sequelize, DataTypes) => {
         grant_lang: {
             type: DataTypes.STRING(40),
             allowNull: false,
-        },
-        req_id : {
-
-        },
+        }
     }, {
         // 한글 사용
         charset: 'utf8',

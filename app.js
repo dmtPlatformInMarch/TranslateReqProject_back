@@ -9,6 +9,7 @@ const db = require('./models');
 const passportConfig = require('./passport');
 const userRouter = require('./routes/user');
 const requestRouter = require('./routes/request');
+const requestsRouter = require('./routes/requests');
 const app = express();
 
 db.sequelize.sync({ force: false })
@@ -25,7 +26,7 @@ passportConfig();
 app.use(morgan('dev'));
 // cors => 해당 주소에 대한 액세스 허용
 app.use(cors({
-    origin: 'http://localhost:3000',
+    origin: 'http://localhost:3080',
     credentials: true,
 }));
 app.use('/', express.static('uploads'));
@@ -51,6 +52,7 @@ app.use(passport.session());
 // 라우터
 app.use('/user', userRouter);
 app.use('/request', requestRouter);
+app.use('/requests', requestsRouter);
 
 app.get('/', (req, res) => {
     res.status(200).send('Test nodemon');

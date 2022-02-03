@@ -8,6 +8,11 @@ module.exports = (sequelize, DataTypes) => {
         // 한글 사용
         charset: 'utf8',
         collate: 'utf8_general_ci',
+        defaultScope: {
+            where: {
+                src: true,
+            }
+        }
     });
     
     File.associate = (db) => {
