@@ -15,7 +15,9 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     Subrequest.associate = (db) => {
-        db.Subrequest.belongsTo(db.Requests); // column에 RequestId 추가
+        db.Subrequest.belongsTo(db.Requests, {
+            onDelete: 'CASCADE',
+        }); // column에 RequestId 추가
     };
 
     return Subrequest;

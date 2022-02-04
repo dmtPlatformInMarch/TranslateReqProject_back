@@ -16,7 +16,9 @@ module.exports = (sequelize, DataTypes) => {
     });
     
     File.associate = (db) => {
-        db.File.belongsTo(db.Requests); // column에 RequestId 추가
+        db.File.belongsTo(db.Requests, {
+            onDelete: 'CASCADE',
+        }); // column에 RequestId 추가
         db.File.belongsTo(db.User); // column에 UserId 추가
     };
 
