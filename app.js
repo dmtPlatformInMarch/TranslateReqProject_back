@@ -12,6 +12,7 @@ const requestRouter = require('./routes/request');
 const requestsRouter = require('./routes/requests');
 const app = express();
 
+// force = true 테이블을 전부 날림.
 db.sequelize.sync({ force: false })
     .then(() => {
         console.log('DB 연결');
@@ -31,7 +32,7 @@ app.use(cors({
 }));
 app.use('/', express.static('uploads'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false}));
+app.use(express.urlencoded({ extended: false }));
 // cookie => 쿠키 파싱
 app.use(cookie('cookiesecret'));
 // session => 세션 정의를 위한 미들웨어. secret = cookie 해석에 필요한 키

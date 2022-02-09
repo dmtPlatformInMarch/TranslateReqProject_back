@@ -1,9 +1,10 @@
 module.exports = (sequelize, DataTypes) => {
     const Requests = sequelize.define('Requests', {
         id: {
-            type: DataTypes.STRING(40),
+            type: DataTypes.INTEGER,
             allowNull: false,
             primaryKey: true,
+            autoIncrement: true,
         },
         name: {
             type: DataTypes.STRING(40),
@@ -48,7 +49,6 @@ module.exports = (sequelize, DataTypes) => {
             onDelete: 'CASCADE',
         }); // 본인 column에 UserId 추가
         db.Requests.hasMany(db.File);
-        db.Requests.hasMany(db.Subrequest);
     };
 
     return Requests;

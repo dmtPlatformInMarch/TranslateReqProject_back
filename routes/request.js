@@ -1,12 +1,12 @@
-const express = require('express')
-const multer = require('multer')
-const path = require('path')
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
 
-const db = require('../models')
+const db = require('../models');
 
-const { isLoggedIn } = require('./middlewares')
+const { isLoggedIn } = require('./middlewares');
 
-const router = express.Router()
+const router = express.Router();
 
 const upload = multer({
   // 임시스토리지 -> 나중에 교체
@@ -23,7 +23,7 @@ const upload = multer({
     },
   }),
   limit: { fileSize: 20 * 1024 * 1024 }, // 20MB (byte단위)
-})
+});
 
 // 의뢰 수정
 router.patch('/:id', async (req, res, next) => {
@@ -33,7 +33,7 @@ router.patch('/:id', async (req, res, next) => {
     console.error(err)
     next(err)
   }
-})
+});
 
 // 의뢰 삭제
 router.delete('/:id', async (req, res, next) => {
@@ -48,46 +48,20 @@ router.delete('/:id', async (req, res, next) => {
     console.error(err)
     next(err)
   }
-})
-
-// 해당 의뢰의 번역 정보(Subrequest)들 가져오기
-// Subrequest에는 번역 언어 정보가 담겨있음 (req_lang, grant_lang)
-router.get('/:id/sub', async (req, res, next) => {
-  try {
-    const reqstate = await db.Requests.findOne({ where: { id: req.params.id } })
-    if (!reqstate) {
-      return res.status(404).send('의뢰가 존재하지 않습니다.')
-    }
-    const subReq = await db.Subrequest.findAll({
-      where: {
-        RequestId: req.params.id,
-      },
-      include: {
-        model: db.Subrequest,
-        attributes: ['req_lang', 'grant_lang'],
-      },
-      order: [['createdAt', 'ASC']], // 2차원 배열로 정렬해야함.
-    })
-    res.json(subReq)
-  } catch (err) {
-    console.error(err)
-    next(err)
-  }
-})
+});
 
 // 번역 파일 업로드
 // 의뢰와 파일은 따로 등록을 해야함.
 router.post('/file', isLoggedIn, upload.array('fileKey'), (req, res) => {
   console.log(req.files)
   return res.json(req.files.map((v) => v.filename))
-})
+});
 
 // 번역 의뢰
 // router 시행 전에는 deSerialUser가 시행된다.
 router.post('/', isLoggedIn, async (req, res, next) => {
   try {
     const newRequest = await db.Requests.create({
-      id: req.body.id,
       name: req.body.name,
       phone: req.body.phone,
       email: req.body.email,
@@ -97,49 +71,33 @@ router.post('/', isLoggedIn, async (req, res, next) => {
       options: req.body.options,
       trans_state: req.body.trans_state,
       UserId: req.user.id,
-    })
-    for (let i = 0; i < 5; i++) {
-      if (req.body.req_lang != '' && req.body.grant_lang != '') {
-        const newSubquest = await db.Subrequest.create({
-          req_lang: req.body.req_lang[i],
-          grant_lang: req.body.grant_lang[i],
-          RequestId: newRequest.id,
-        })
-      }
-    }
-    // req에 file이 있는가?
-    if (Array.isArray(req.body.file)) {
-      // 파일이 여러개인 경우
-      const files = await Promise.all(
-        req.body.file.map((file) => {
-          file.forEach((f) => {
-            console.log(`file create log : ${f}\n\n`);
-            db.File.create({ src: f, UserId: req.user.id, RequestId: newRequest.id });
-          })
-        })
-      );
-    } 
+    });
+    const files = await Promise.all(
+      req.body.file.map((file, i) => {
+        Array.from(file).forEach((f) => {
+          //console.log(`file create log : ${f}\n\n`);
+          db.File.create({
+            src: f,
+            UserId: req.user.id,
+            req_lang: req.body.req_lang[i],
+            grant_lang: req.body.grant_lang[i],
+            RequestId: newRequest.id
+          });
+        });
+      })
+    );
     const fullRequest = await db.Requests.findOne({
       where: { id: newRequest.id },
-      include: [
-        {
-          model: db.User,
-          attributes: ['id', 'nickname'],
-        },
-        {
-          model: db.Subrequest,
-          attributes: ['req_lang', 'grant_lang'],
-        },
-        {
-          model: db.File,
-        },
-      ],
-    })
-    return res.json(fullRequest)
+      /*include: [{
+        model: db.File,
+        attributes: ['src', 'req_lang', 'grant_lang'],
+      }],*/
+    });
+    return res.json(fullRequest);
   } catch (err) {
     console.error(err)
     next(err)
   }
-})
+});
 
-module.exports = router
+module.exports = router;
