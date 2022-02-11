@@ -12,8 +12,8 @@ router.get('/', isLoggedIn, async (req, res, next) => {
 });
 
 // 회원가입
-router.post('/', isNotLoggedIn, async (req, res, next) => {
-    try{
+router.post('/signup', isNotLoggedIn, async (req, res, next) => {
+    try {
         const hash = await bcrypt.hash(req.body.password, 10);
         const exUser = await db.User.findOne({
             where: {
@@ -67,7 +67,7 @@ router.post('/login', isNotLoggedIn, (req, res, next) => {
 
 // 로그아웃
 router.post('/logout', isLoggedIn, (req, res) => {
-    if(req.isAuthenticated()){
+    if (req.isAuthenticated()) {
         req.logout();
         // 세션 지우기는 선택
         req.session.destroy();
