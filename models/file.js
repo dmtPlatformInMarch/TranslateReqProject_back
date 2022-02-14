@@ -1,5 +1,9 @@
 module.exports = (sequelize, DataTypes) => {
     const File = sequelize.define('File', {
+        chainNumber: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+        },
         src: {
             type: DataTypes.STRING(200),
             allowNull: false,

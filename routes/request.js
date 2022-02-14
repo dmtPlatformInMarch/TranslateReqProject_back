@@ -77,6 +77,7 @@ router.post('/', isLoggedIn, async (req, res, next) => {
         Array.from(file).forEach((f) => {
           //console.log(`file create log : ${f}\n\n`);
           db.File.create({
+            chainNumber: i,
             src: f,
             UserId: req.user.id,
             req_lang: req.body.req_lang[i],

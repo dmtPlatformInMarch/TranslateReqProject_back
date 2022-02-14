@@ -10,9 +10,9 @@ router.get('/', async (req, res, next) => { // GET /requsets
         const userRequests = await db.Requests.findAll({
             include: [{
                 model: db.File,
-                attributes: ['src', 'req_lang', 'grant_lang'],
+                attributes: ['chainNumber', 'src', 'req_lang', 'grant_lang'],
             }],
-            order: [['createdAt', 'DESC']],
+            order: [['id', 'DESC']],
         });
         res.json(userRequests);
     } catch (err) {
