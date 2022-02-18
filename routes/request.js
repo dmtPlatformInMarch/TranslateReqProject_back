@@ -13,13 +13,13 @@ const upload = multer({
   storage: multer.diskStorage({
     destination(req, file, done) {
       // 저장장소
-      done(null, 'uploads')
+      done(null, 'uploads');
     },
     filename(req, file, done) {
       // 파일이름양식
-      const ext = path.extname(file.originalname) // 확장자
-      const basename = path.basename(file.originalname, ext) // 이름
-      done(null, basename + Date.now() + ext)
+      const ext = path.extname(file.originalname); // 확장자
+      const basename = path.basename(file.originalname, ext); // 이름
+      done(null, basename + Date.now() + ext);
     },
   }),
   limit: { fileSize: 20 * 1024 * 1024 }, // 20MB (byte단위)
@@ -30,8 +30,8 @@ router.patch('/:id', async (req, res, next) => {
   try {
     // 이곳에 수정내용 작성
   } catch (err) {
-    console.error(err)
-    next(err)
+    console.error(err);
+    next(err);
   }
 });
 
@@ -45,16 +45,16 @@ router.delete('/:id', async (req, res, next) => {
     })
     req.send('삭제')
   } catch (err) {
-    console.error(err)
-    next(err)
+    console.error(err);
+    next(err);
   }
 });
 
 // 번역 파일 업로드
 // 의뢰와 파일은 따로 등록을 해야함.
 router.post('/file', isLoggedIn, upload.array('fileKey'), (req, res) => {
-  console.log(req.files)
-  return res.json(req.files.map((v) => v.filename))
+  console.log(req.files);
+  return res.json(req.files.map((v) => v.filename));
 });
 
 // 번역 의뢰
@@ -75,13 +75,14 @@ router.post('/', isLoggedIn, async (req, res, next) => {
     const files = await Promise.all(
       req.body.file.map((file, i) => {
         Array.from(file).forEach((f) => {
-          //console.log(`file create log : ${f}\n\n`);
+          console.log(`body : ${JSON.stringify(req.body)}\n\n`);
           db.File.create({
             chainNumber: i,
             src: f,
             UserId: req.user.id,
             req_lang: req.body.req_lang[i],
             grant_lang: req.body.grant_lang[i],
+            field: req.body.field[i],
             RequestId: newRequest.id
           });
         });
@@ -96,8 +97,8 @@ router.post('/', isLoggedIn, async (req, res, next) => {
     });
     return res.json(fullRequest);
   } catch (err) {
-    console.error(err)
-    next(err)
+    console.error(err);
+    next(err);
   }
 });
 

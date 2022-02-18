@@ -12,7 +12,12 @@ module.exports = (sequelize, DataTypes) => {
         nickname: {
             type: DataTypes.STRING(20),
             allowNull: false,
-        }, // createdAt, updatedAt 자동생성
+        },
+        permission: {
+            type: DataTypes.ENUM('user', 'admin'),
+            defaultValue: 'user',
+            allowNull: false,
+        }// createdAt, updatedAt 자동생성
     }, {
         // 한글 사용
         charset: 'utf8',

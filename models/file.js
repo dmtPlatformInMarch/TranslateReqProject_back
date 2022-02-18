@@ -15,7 +15,12 @@ module.exports = (sequelize, DataTypes) => {
         grant_lang: {
             type: DataTypes.STRING(40),
             allowNull: false,
-        }
+        },
+        field: {
+            type: DataTypes.STRING(40),
+            allowNull: false,
+            defaultValue: '단순 번역',
+        },
     }, {
         // 한글 사용
         charset: 'utf8',
