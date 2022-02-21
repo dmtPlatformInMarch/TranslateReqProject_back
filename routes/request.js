@@ -38,12 +38,13 @@ router.patch('/:id', async (req, res, next) => {
 // 의뢰 삭제
 router.delete('/:id', async (req, res, next) => {
   try {
+    console.log(`params = ${JSON.stringify(req.params.id)}`);
     await db.Requests.destroy({
       where: {
         id: req.params.id,
       },
-    })
-    req.send('삭제')
+    });
+    res.send('삭제');
   } catch (err) {
     console.error(err);
     next(err);
