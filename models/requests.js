@@ -45,10 +45,10 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     Requests.associate = (db) => {
-        db.Requests.belongsTo(db.User, {
+        db.Requests.belongsTo(db.Users, {
             onDelete: 'CASCADE',
         }); // 본인 column에 UserId 추가
-        db.Requests.hasMany(db.File);
+        db.Requests.hasMany(db.Files);
     };
 
     return Requests;

@@ -5,8 +5,8 @@ const db = {};
 
 const sequelize = new Sequelize(config.database, config.username, config.password, config);
 
-db.User = require('./user')(sequelize, Sequelize);
-db.File = require('./file')(sequelize, Sequelize);
+db.Users = require('./users')(sequelize, Sequelize);
+db.Files = require('./files')(sequelize, Sequelize);
 db.Requests = require('./requests')(sequelize, Sequelize);
 
 Object.keys(db).forEach(modelName => {

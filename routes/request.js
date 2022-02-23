@@ -38,13 +38,12 @@ router.patch('/:id', async (req, res, next) => {
 // 의뢰 삭제
 router.delete('/:id', async (req, res, next) => {
   try {
-    console.log(`params = ${JSON.stringify(req.params.id)}`);
     await db.Requests.destroy({
       where: {
         id: req.params.id,
       },
     });
-    res.send('삭제');
+    return res.send('삭제');
   } catch (err) {
     console.error(err);
     next(err);
@@ -76,8 +75,7 @@ router.post('/', isLoggedIn, async (req, res, next) => {
     const files = await Promise.all(
       req.body.file.map((file, i) => {
         Array.from(file).forEach((f) => {
-          console.log(`body : ${JSON.stringify(req.body)}\n\n`);
-          db.File.create({
+          db.Files.create({
             chainNumber: i,
             src: f,
             UserId: req.user.id,
@@ -92,7 +90,7 @@ router.post('/', isLoggedIn, async (req, res, next) => {
     const fullRequest = await db.Requests.findOne({
       where: { id: newRequest.id },
       /*include: [{
-        model: db.File,
+        model: db.Files,
         attributes: ['src', 'req_lang', 'grant_lang'],
       }],*/
     });

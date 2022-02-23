@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    const User = sequelize.define('User', {
+    const Users = sequelize.define('Users', {
         email: {
             type: DataTypes.STRING(40),
             allowNull: false,
@@ -24,10 +24,14 @@ module.exports = (sequelize, DataTypes) => {
         collate: 'utf8_general_ci',
     });
 
-    User.associate = (db) => {
-        db.User.hasMany(db.Requests);
-        db.User.hasMany(db.File);
+    Users.associate = (db) => {
+        db.Users.hasMany(db.Requests, {
+            onDelete: 'CASCADE',
+        });
+        db.Users.hasMany(db.Files, {
+            onDelete: 'CASCADE',
+        });
     };
 
-    return User;
+    return Users;
 };

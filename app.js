@@ -10,6 +10,7 @@ const passportConfig = require('./passport');
 const userRouter = require('./routes/user');
 const requestRouter = require('./routes/request');
 const requestsRouter = require('./routes/requests');
+const adminRouter = require('./routes/admin');
 const app = express();
 
 // force = true 테이블을 전부 날림.
@@ -54,6 +55,7 @@ app.use(passport.session());
 app.use('/user', userRouter);
 app.use('/request', requestRouter);
 app.use('/requests', requestsRouter);
+app.use('/admin', adminRouter);
 
 app.get('/', (req, res) => {
     res.status(200).send('Test nodemon');

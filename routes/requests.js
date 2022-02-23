@@ -9,7 +9,7 @@ router.get('/', async (req, res, next) => { // GET /requsets
     try {
         const userRequests = await db.Requests.findAll({
             include: [{
-                model: db.File,
+                model: db.Files,
                 attributes: ['chainNumber', 'src', 'req_lang', 'grant_lang', 'field'],
             }],
             order: [['id', 'DESC']],

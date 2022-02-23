@@ -15,7 +15,7 @@ router.get('/', isLoggedIn, async (req, res, next) => {
 router.post('/signup', isNotLoggedIn, async (req, res, next) => {
     try {
         const hash = await bcrypt.hash(req.body.password, 10);
-        const exUser = await db.User.findOne({
+        const exUser = await db.Users.findOne({
             where: {
                 email: req.body.email,
             },
@@ -23,12 +23,12 @@ router.post('/signup', isNotLoggedIn, async (req, res, next) => {
         if (exUser) {
             // 회원가입이 된 이메일인가?
             // 403은 액세스 금지 => 대부분 에러를 따로 정의
-            return res.status(403).json({
+            return res.status(202).json({
                 errorCode: 1,
                 message: '이미 회원가입 된 계정입니다.'
             });
         }
-        const newUser = await db.User.create({
+        const newUser = await db.Users.create({
             email: req.body.email,
             password: hash,
             nickname: req.body.nickname,
