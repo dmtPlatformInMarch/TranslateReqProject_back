@@ -57,7 +57,7 @@ router.delete('/:id', async (req, res, next) => {
 // 번역 파일 업로드
 router.post('/file', isLoggedIn, upload.array('fileKey'), (req, res) => {
   console.log(req.files);
-  return res.json(req.files.map((v) => v.location));
+  return res.json(req.files.map((v) => decodeURI(v.location)));
 });
 
 // 번역 의뢰
