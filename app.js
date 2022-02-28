@@ -49,9 +49,6 @@ if (prod) {
     }));
 }
 
-
-
-
 app.use('/', express.static('uploads'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -80,7 +77,7 @@ app.use('/requests', requestsRouter);
 app.use('/admin', adminRouter);
 
 app.get('/', (req, res) => {
-    res.status(200).send('Test nodemon');
+    res.status(200).send('[DMTlabs] Web Translate Service Backend');
 });
 
 // http = 80 포트
