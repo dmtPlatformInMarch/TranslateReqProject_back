@@ -55,7 +55,6 @@ router.delete('/:id', async (req, res, next) => {
 });
 
 // 번역 파일 업로드
-// 의뢰와 파일은 따로 등록을 해야함.
 router.post('/file', isLoggedIn, upload.array('fileKey'), (req, res) => {
   console.log(req.files);
   return res.json(req.files.map((v) => v.localtion));

@@ -1,8 +1,38 @@
 const express = require('express');
+const AWS = require('aws-sdk');
+const multerS3 = require('multer-s3');
 
 const db = require('../models');
 
 const router = express.Router();
+
+// 아마존 연결
+AWS.config.update({
+    region: 'ap-northeast-2',
+    accessKeyId: process.env.S3_ACCESS_KEY_ID,
+    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+});
+
+/*
+// AWS S3 설정
+const download = multer({
+    storage: multerS3({
+        s3: new AWS.S3(),
+        bucket: 'dmtlabs-files',
+    }),
+});
+*/
+
+// 번역 파일 다운로드
+router.get('/:filename', async (req, res, next) => {
+    try {
+        // 파일 다운로드 로직 작성
+        return res.status(200).send('파일다운 api 미구현');
+    } catch (err) {
+        console.log(err);
+        next(err);
+    }
+});
 
 // 의뢰 목록 반환
 router.get('/requests', async (req, res, next) => {
