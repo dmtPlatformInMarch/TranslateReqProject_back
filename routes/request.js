@@ -1,25 +1,29 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const AWS = require('aws-sdk');
+const multerS3 = require('multer-s3');
 
 const db = require('../models');
-
 const { isLoggedIn } = require('./middlewares');
 
 const router = express.Router();
 
+// 아마존 연결
+AWS.config.update({
+  region: 'ap-northeast-2',
+  accessKeyId: process.env.S3_ACCESS_KEY_ID,
+  secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+});
+
+// AWS S3 설정
 const upload = multer({
   // 임시스토리지 -> 나중에 교체
-  storage: multer.diskStorage({
-    destination(req, file, done) {
-      // 저장장소
-      done(null, 'uploads');
-    },
-    filename(req, file, done) {
-      // 파일이름양식
-      const ext = path.extname(file.originalname); // 확장자
-      const basename = path.basename(file.originalname, ext); // 이름
-      done(null, basename + Date.now() + ext);
+  storage: multerS3({
+    s3: new AWS.S3(),
+    bucekt: 'dmtlabs-files',
+    key(req, file, cb) {
+      cb(null, `original/${DATE.now()}${path.basename(file.originalname)}`);
     },
   }),
   limit: { fileSize: 20 * 1024 * 1024 }, // 20MB (byte단위)
@@ -54,7 +58,7 @@ router.delete('/:id', async (req, res, next) => {
 // 의뢰와 파일은 따로 등록을 해야함.
 router.post('/file', isLoggedIn, upload.array('fileKey'), (req, res) => {
   console.log(req.files);
-  return res.json(req.files.map((v) => v.filename));
+  return res.json(req.files.map((v) => v.localtion));
 });
 
 // 번역 의뢰
