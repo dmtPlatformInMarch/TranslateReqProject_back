@@ -23,7 +23,7 @@ const upload = multer({
     s3: new AWS.S3(),
     bucket: 'dmtlabs-files',
     key(req, file, cb) {
-      cb(null, `original/${DATE.now()}${path.basename(file.originalname)}`);
+      cb(null, `original/${Date.now()}${path.basename(file.originalname)}`);
     },
   }),
   limit: { fileSize: 20 * 1024 * 1024 }, // 20MB (byte단위)
