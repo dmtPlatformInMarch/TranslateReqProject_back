@@ -4,7 +4,11 @@ const passport = require('passport');
 const session = require('express-session');
 const cookie = require('cookie-parser');
 const morgan = require('morgan');
+const hpp = require('hpp');
+const helmet = require('helmet');
+const dotenv = require('dotenv');
 
+const prod = process.env.NODE_ENV === 'production';
 const db = require('./models');
 const passportConfig = require('./passport');
 const userRouter = require('./routes/user');
@@ -13,6 +17,7 @@ const requestsRouter = require('./routes/requests');
 const adminRouter = require('./routes/admin');
 const app = express();
 
+dotenv.config();
 // force = true 테이블을 전부 날림.
 db.sequelize.sync({ force: false })
     .then(() => {
@@ -23,27 +28,44 @@ db.sequelize.sync({ force: false })
     });
 passportConfig();
 
-// express middleware parsing code
-// morgan => request를 console에 찍어줌.
-app.use(morgan('dev'));
-// cors => 해당 주소에 대한 액세스 허용
-app.use(cors({
-    origin: 'http://localhost:3080',
-    credentials: true,
-}));
+// 개발/배포 미들웨어 제어
+if (prod) {
+    app.use(helmet());
+    app.use(hpp());
+    app.use(morgan('combined'));
+    // cors => 해당 주소에 대한 액세스 허용
+    app.use(cors({
+        origin: 'http://dmtlabs.kr',
+        credentials: true,
+    }));
+} else {
+    // express middleware parsing code
+    // morgan => request를 console에 찍어줌.
+    app.use(morgan('dev'));
+    // cors => 해당 주소에 대한 액세스 허용
+    app.use(cors({
+        origin: 'http://localhost:3080',
+        credentials: true,
+    }));
+}
+
+
+
+
 app.use('/', express.static('uploads'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 // cookie => 쿠키 파싱
-app.use(cookie('cookiesecret'));
+app.use(cookie(process.env.COOKIE_SECRET));
 // session => 세션 정의를 위한 미들웨어. secret = cookie 해석에 필요한 키
 app.use(session({
     resave: false,
     saveUninitialized: false,
-    secret: 'cookiesecret',
+    secret: process.env.COOKIE_SECRET,
     cookie: {
         httpOnly: true,
         secure: false,
+        domain: prod && '.dmtlabs.kr',
     },
 }));
 // passport => 로그인 모듈
@@ -63,6 +85,6 @@ app.get('/', (req, res) => {
 
 // http = 80 포트
 // https = 443 포트
-app.listen(3085, () => {
-    console.log(`백엔드 서버 ${3085}번 포트에서 작동 중.`);
+app.listen(prod ? process.env.PORT : 3085, () => {
+    console.log(`백엔드 서버 ${prod ? process.env.PORT : 3085}번 포트에서 작동 중.`);
 });
