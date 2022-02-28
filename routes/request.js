@@ -21,7 +21,7 @@ const upload = multer({
   // 임시스토리지 -> 나중에 교체
   storage: multerS3({
     s3: new AWS.S3(),
-    bucekt: 'dmtlabs-files',
+    bucket: 'dmtlabs-files',
     key(req, file, cb) {
       cb(null, `original/${DATE.now()}${path.basename(file.originalname)}`);
     },
