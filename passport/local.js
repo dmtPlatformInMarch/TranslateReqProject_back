@@ -10,7 +10,10 @@ module.exports = () => {
         passwordField: 'password'   // req.body.password
     }, async (email, password, done) => {
         try {
-            const exUser = await db.Users.findOne({ where: { email } });
+            const exUser = await db.Users.findOne({
+                where: { email },
+                attributes: ['id', 'nickname', 'email', 'password', 'permission'],
+            });
             // done 순서 (error, 성공, 실패)
             if (!exUser) {
                 return done(null, false, { reason: '존재하지 않는 사용자입니다.' });

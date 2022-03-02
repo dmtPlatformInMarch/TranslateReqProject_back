@@ -8,7 +8,7 @@ const router = express.Router();
 
 router.get('/', isLoggedIn, async (req, res, next) => {
     const user = req.user;
-    res.json(user);
+    res.json({ 'id': user.id, 'nickname': user.nickname, 'email': user.email, 'permission': user.permission });
 });
 
 // 회원가입
@@ -60,7 +60,7 @@ router.post('/login', isNotLoggedIn, (req, res, next) => {
                 return next(err);
             }
             // 쿠키는 header, body는 옵션 -> 여기선 유저 정보를 내려줌.
-            return res.json(user);
+            return res.json({ 'id': user.id, 'nickname': user.nickname, 'email': user.email, 'permission': user.permission });
         });
     })(req, res, next);
 });
