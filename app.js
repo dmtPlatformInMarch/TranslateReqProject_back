@@ -65,11 +65,14 @@ app.use(session({
         domain: prod && '.dmtlabs.kr',
     },
 }));
+
 // passport => 로그인 모듈
 // 로그인, 로그아웃 (reqeust response조작 ex. req.login / req.logout)
 app.use(passport.initialize());
+
 // 사용자 세션
 app.use(passport.session());
+
 // 라우터
 app.use('/user', userRouter);
 app.use('/request', requestRouter);
