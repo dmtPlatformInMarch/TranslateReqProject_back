@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         second_phone: {
             type: DataTypes.STRING(40),
-            allowNull: false,
+            allowNull: true,
         },
         date: {
             type: DataTypes.DATEONLY,
@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         options: {
             type: DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true,
         },
         trans_state: {
             type: DataTypes.STRING(40),

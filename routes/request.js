@@ -16,11 +16,17 @@ AWS.config.update({
   secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
 });
 
+const s3 = new AWS.S3({
+  region: 'ap-northeast-2',
+  accessKeyId: process.env.S3_ACCESS_KEY_ID,
+  secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+});
+
 // AWS S3 설정
 const upload = multer({
   // 임시스토리지 -> 나중에 교체
   storage: multerS3({
-    s3: new AWS.S3(),
+    s3: s3,
     bucket: 'dmtlabs-files',
     key(req, file, cb) {
       cb(null, `original/${Date.now()}${path.basename(file.originalname)}`);
@@ -56,8 +62,47 @@ router.delete('/:id', async (req, res, next) => {
 
 // 번역 파일 업로드
 router.post('/file', isLoggedIn, upload.array('fileKey'), (req, res) => {
-  console.log(req.files);
   return res.json(req.files.map((v) => decodeURI(v.location)));
+});
+
+// 번역 파일 삭제
+router.delete('/file/delete', isLoggedIn, async (req, res, next) => {
+  try {
+    if (req.body.files.length === 1) {
+      // 단일 파일의 경우
+      const deleteResponse = await s3.deleteObjects({
+        Bucket: 'dmtlabs-files',
+        Delete: {
+          Objects: [{ Key: `original/${req.body.files[0].toString().substring(req.body.files[0].toString().lastIndexOf("/") + 1)}` }],
+          Quiet: false
+        },
+      }, (err, data) => {
+        if (err) { console.log(err); }
+        console.log('s3 deleteObject ', data);
+      });
+      return res.status(201).send('단일 파일 삭제');
+    } else {
+      // 다중 파일의 경우
+      const deleteResponse = await Array.from(req.body.files).forEach((f) => {
+        console.log(`original/${f.toString().substring(req.body.files[0].toString().lastIndexOf("/") + 1)}`);
+        s3.deleteObjects({
+          Bucket: 'dmtlabs-files',
+          Delete: {
+            Objects: [{ Key: `original/${f.toString().substring(req.body.files[0].toString().lastIndexOf("/") + 1)}` }],
+            Quiet: false
+          },
+        }, (err, data) => {
+          if (err) { console.log(err); }
+          console.log('s3 deleteObject ', data);
+        });
+      });
+      return res.status(201).send('다중 파일 삭제');
+    }
+
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
 });
 
 // 번역 의뢰
