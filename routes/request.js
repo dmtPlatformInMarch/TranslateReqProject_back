@@ -3,6 +3,8 @@ const multer = require('multer');
 const path = require('path');
 const AWS = require('aws-sdk');
 const multerS3 = require('multer-s3');
+const fs = require('fs');
+const
 
 const db = require('../models');
 const { isLoggedIn } = require('./middlewares');
