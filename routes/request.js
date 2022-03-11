@@ -11,13 +11,6 @@ const { isLoggedIn } = require('./middlewares');
 
 const router = express.Router();
 
-// 아마존 연결
-AWS.config.update({
-  region: 'ap-northeast-2',
-  accessKeyId: process.env.S3_ACCESS_KEY_ID,
-  secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
-});
-
 const s3 = new AWS.S3({
   region: 'ap-northeast-2',
   accessKeyId: process.env.S3_ACCESS_KEY_ID,
@@ -64,6 +57,32 @@ router.delete('/:id', async (req, res, next) => {
 
 // 번역 파일 업로드
 router.post('/file', isLoggedIn, upload.array('fileKey'), (req, res) => {
+  /*const files = Array.from(req.files);
+  if (files && files.length === 1) {
+    if (files[0].mimetype === 'application/pdf') {
+      // 파일 path or instance of Buffer or URL이 들어가야함.
+      let dataBuffer = fs.readFileSync(files[0]);
+      console.log(`${files[0].mimetype}이 pdf이고, dataBuffer가 \n${dataBuffer}`);
+      pdf(dataBuffer).then((data) => {
+        // number of pages
+        console.log(data.numpages);
+        // number of rendered pages
+        console.log(data.numrender);
+        // PDF info
+        console.log(data.info);
+        // PDF metadata
+        console.log(data.metadata);
+        // PDF.js version
+        console.log(data.version);
+        // PDF text
+        console.log(data.text);
+      })
+    } else {
+
+    }
+  } else {
+
+  }*/
   return res.json(req.files.map((v) => decodeURI(v.location)));
 });
 

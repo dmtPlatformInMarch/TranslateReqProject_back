@@ -6,28 +6,22 @@ const db = require('../models');
 
 const router = express.Router();
 
-// 아마존 연결
-AWS.config.update({
+// 아마존 S3 스토어 연결
+const s3 = new AWS.S3({
     region: 'ap-northeast-2',
     accessKeyId: process.env.S3_ACCESS_KEY_ID,
     secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
 });
 
-/*
-// AWS S3 설정
-const download = multer({
-    storage: multerS3({
-        s3: new AWS.S3(),
-        bucket: 'dmtlabs-files',
-    }),
-});
-*/
-
-// 번역 파일 다운로드
-router.get('/:filename', async (req, res, next) => {
+// 의뢰 취소 (삭제)
+router.delete('/request/:id', async (req, res, next) => {
     try {
-        // 파일 다운로드 로직 작성
-        return res.status(200).send('파일다운 api 미구현');
+        await db.Requests.destroy({
+            where: {
+                id: req.params.id,
+            },
+        });
+        return res.send('삭제');
     } catch (err) {
         console.log(err);
         next(err);
@@ -54,6 +48,7 @@ router.get('/requests', async (req, res, next) => {
     }
 });
 
+// 유저 목록 반환
 router.get('/users', async (req, res, next) => {
     try {
         const userRequests = await db.Users.findAll({
@@ -68,6 +63,7 @@ router.get('/users', async (req, res, next) => {
     }
 });
 
+// 의뢰 파일 조회
 // 추가 구현 필요
 router.get('/file/:id', async (req, res, next) => {
     try {
@@ -79,8 +75,21 @@ router.get('/file/:id', async (req, res, next) => {
         console.log(err);
         next(err);
     }
-})
+});
 
+// 의뢰 파일 다운로드
+router.get('/file/:filename', async (req, res, next) => {
+    try {
+        // 파일 다운로드 로직 작성
+
+        return res.status(200).send('파일다운 api 미구현');
+    } catch (err) {
+        console.log(err);
+        next(err);
+    }
+});
+
+// 유저 삭제(탈퇴)
 router.delete('/user/delete/:email', async (req, res, next) => {
     try {
         await db.Users.destroy({
