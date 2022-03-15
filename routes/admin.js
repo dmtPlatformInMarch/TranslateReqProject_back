@@ -1,9 +1,10 @@
 const express = require('express');
 const AWS = require('aws-sdk');
-const multerS3 = require('multer-s3');
+const fs = require('fs');
+const iconvLite = require('iconv-lite');
+const path = require('path');
 
 const db = require('../models');
-
 const router = express.Router();
 
 // 아마존 S3 스토어 연결
@@ -65,7 +66,7 @@ router.get('/users', async (req, res, next) => {
 
 // 의뢰 파일 조회
 // 추가 구현 필요
-router.get('/file/:id', async (req, res, next) => {
+router.get('/file/get/:id', async (req, res, next) => {
     try {
         const fileRequests = await db.Files.findOne({
             where: { id: req.params.id },
@@ -78,11 +79,27 @@ router.get('/file/:id', async (req, res, next) => {
 });
 
 // 의뢰 파일 다운로드
-router.get('/file/:filename', async (req, res, next) => {
+router.get('/file/download/:filename', async (req, res, next) => {
     try {
-        // 파일 다운로드 로직 작성
-
-        return res.status(200).send('파일다운 api 미구현');
+        // 파일명 브라우저별 인코딩
+        const fn = () => {
+            if (req.headers['user-agent'].includes("MSIE") || req.headers['user-agent'].includes("Trident")) {
+                return encodeURIComponent(req.params.filename).replace(/\\+/gi, "%20");
+            } else if (req.headers['user-agent'].includes("Chrome")) {
+                return iconvLite.decode(iconvLite.encode(req.params.filename, "UTF-8"), 'ISO-8859-1');
+            } else if (req.headers['user-agent'].includes("Opera")) {
+                return iconvLite.decode(iconvLite.encode(req.params.filename, "UTF-8"), 'ISO-8859-1');
+            } else if (req.headers['user-agent'].includes("Firefox")) {
+                return iconvLite.decode(iconvLite.encode(req.params.filename, "UTF-8"), 'ISO-8859-1');
+            }
+            return req.params.filename;
+        }
+        res.attachment(fn()); // 헤더에 Content-Disposition : attachment; filename = fn()을 연결 => 다운로드함으로 인식
+        const downloadS3 = await s3.getObject({
+            Bucket: 'dmtlabs-files',
+            Key: 'original/' + fn()
+        }).createReadStream();
+        downloadS3.pipe(res);
     } catch (err) {
         console.log(err);
         next(err);

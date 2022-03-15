@@ -23,6 +23,9 @@ const upload = multer({
   storage: multerS3({
     s3: s3,
     bucket: 'dmtlabs-files',
+    contentDisposition(req, file, cb) {
+      cb(null, `attachment; filename=${encodeURI(file.originalname)}`);
+    },
     key(req, file, cb) {
       cb(null, `original/${Date.now()}${path.basename(file.originalname)}`);
     },
@@ -56,6 +59,7 @@ router.delete('/:id', async (req, res, next) => {
 });
 
 // 번역 파일 업로드
+// 2022.03.11 확인
 router.post('/file', isLoggedIn, upload.array('fileKey'), (req, res) => {
   /*const files = Array.from(req.files);
   if (files && files.length === 1) {
