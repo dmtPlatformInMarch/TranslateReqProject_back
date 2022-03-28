@@ -61,12 +61,16 @@ router.delete('/:id', async (req, res, next) => {
 // 번역 파일 업로드
 // 2022.03.11 확인
 router.post('/file', isLoggedIn, upload.array('fileKey'), (req, res) => {
+  // req에서 파일 추출해야함
+  console.log(req.body);
+  console.log('\n---------------------------------------------------------------------\n');
+  console.log(req.files);
   /*const files = Array.from(req.files);
   if (files && files.length === 1) {
     if (files[0].mimetype === 'application/pdf') {
       // 파일 path or instance of Buffer or URL이 들어가야함.
-      let dataBuffer = fs.readFileSync(files[0]);
-      console.log(`${files[0].mimetype}이 pdf이고, dataBuffer가 \n${dataBuffer}`);
+      let dataBuffer = fs.createReadStream(files[0], 'utf-8');
+      console.log(`Type이 ${files[0].mimetype}이고, dataBuffer가 \n${dataBuffer}`);
       pdf(dataBuffer).then((data) => {
         // number of pages
         console.log(data.numpages);
@@ -85,7 +89,7 @@ router.post('/file', isLoggedIn, upload.array('fileKey'), (req, res) => {
 
     }
   } else {
-
+    console.log(files);
   }*/
   return res.json(req.files.map((v) => decodeURI(v.location)));
 });
