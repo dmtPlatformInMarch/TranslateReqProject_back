@@ -17,6 +17,8 @@ const requestsRouter = require('./routes/requests');
 const adminRouter = require('./routes/admin');
 const app = express();
 
+const whitelist = ["https://dmtlabs.kr", "https://www.dmtlabs.kr"]
+
 dotenv.config();
 // force = true 테이블을 전부 날림.
 db.sequelize.sync({ force: false })
@@ -35,7 +37,13 @@ if (prod) {
     app.use(morgan('combined'));
     // cors => 해당 주소에 대한 액세스 허용
     app.use(cors({
-        origin: 'https://dmtlabs.kr',
+        origin: function (origin, callback) {
+            if(whitelist.indexOf(origin) !== -1) {
+                callback(null, true);
+            } else {
+                callback(new Error("Not Allowed Origin!"));
+            }
+        },
         credentials: true,
     }));
 } else {
