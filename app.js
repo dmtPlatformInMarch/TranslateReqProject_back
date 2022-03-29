@@ -35,7 +35,7 @@ if (prod) {
     app.use(morgan('combined'));
     // cors => 해당 주소에 대한 액세스 허용
     app.use(cors({
-        origin: 'http://dmtlabs.kr',
+        origin: 'https://dmtlabs.kr',
         credentials: true,
     }));
 } else {
@@ -61,7 +61,7 @@ app.use(session({
     secret: process.env.COOKIE_SECRET,
     cookie: {
         httpOnly: true,
-        secure: false,
+        secure: true,
         domain: prod && '.dmtlabs.kr',
     },
 }));
