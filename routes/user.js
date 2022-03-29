@@ -72,6 +72,8 @@ router.post('/logout', isLoggedIn, (req, res) => {
         // 세션 지우기는 선택
         req.session.destroy();
         return res.status(200).send('로그아웃 되었습니다.');
+    } else {
+        return res.status(401).send('Auth가 유효하지 않습니다.');
     }
 });
 
