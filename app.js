@@ -64,6 +64,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookie(process.env.COOKIE_SECRET));
 // session => 세션 정의를 위한 미들웨어. secret = cookie 해석에 필요한 키
 app.use(session({
+    proxy: true,
     resave: false,
     saveUninitialized: false,
     secret: process.env.COOKIE_SECRET,
@@ -72,6 +73,7 @@ app.use(session({
         secure: true,
         domain: prod && '.dmtlabs.kr',
     },
+    
 }));
 
 // passport => 로그인 모듈
