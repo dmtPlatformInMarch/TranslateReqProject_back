@@ -29,7 +29,7 @@ db.sequelize.sync({ force: false })
     });
 passportConfig();
 
-const whitelist = ["https://dmtlabs.kr/", "https://www.dmtlabs.kr/"]
+const whitelist = ["https://dmtlabs.kr", "https://www.dmtlabs.kr"]
 
 // 개발/배포 미들웨어 제어
 if (prod) {
