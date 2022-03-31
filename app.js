@@ -18,8 +18,6 @@ const adminRouter = require('./routes/admin');
 
 const app = express();
 
-const whitelist = ["https://dmtlabs.kr/", "https://www.dmtlabs.kr/"]
-
 dotenv.config();
 // force = true 테이블을 전부 날림.
 db.sequelize.sync({ force: false })
@@ -31,6 +29,8 @@ db.sequelize.sync({ force: false })
     });
 passportConfig();
 
+const whitelist = ["https://dmtlabs.kr/", "https://www.dmtlabs.kr/"]
+
 // 개발/배포 미들웨어 제어
 if (prod) {
     app.use(helmet());
@@ -39,12 +39,13 @@ if (prod) {
     // cors => 해당 주소에 대한 액세스 허용
     app.use(cors({
         origin: function (origin, callback) {
-            if(whitelist.indexOf(origin) !== -1) {
-                callback(null, true);
-            } else {
-                console.log(origin);
-                callback(new Error("Not Allowed Origin!"));
+            console.log(origin);
+
+            if (!origin) return callback(null, true);
+            if (whitelist.indexOf(origin) === -1) {
+                return callback(new Error("허용하지 않는 Origin입니다!"));
             }
+            return callback(null, true);
         },
         credentials: true,
     }));
