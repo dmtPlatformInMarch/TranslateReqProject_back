@@ -39,7 +39,7 @@ if (prod) {
     // cors => 해당 주소에 대한 액세스 허용
     app.use(cors({
         origin: function (origin, callback) {
-            console.log(origin);
+            console.log("origin : " + origin);
 
             if (!origin) return callback(null, true);
             if (whitelist.indexOf(origin) === -1) {
