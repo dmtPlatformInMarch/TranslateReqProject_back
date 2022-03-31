@@ -15,7 +15,6 @@ const userRouter = require('./routes/user');
 const requestRouter = require('./routes/request');
 const requestsRouter = require('./routes/requests');
 const adminRouter = require('./routes/admin');
-const imageRouter = require('./routes/image');
 
 const app = express();
 
@@ -91,7 +90,6 @@ app.use('/user', userRouter);
 app.use('/request', requestRouter);
 app.use('/requests', requestsRouter);
 app.use('/admin', adminRouter);
-app.use('/image', imageRouter);
 
 app.get('/', (req, res) => {
     res.status(200).send('[DMTlabs] Web Translate Service Backend');
