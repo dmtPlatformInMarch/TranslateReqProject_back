@@ -4,6 +4,7 @@ const path = require('path');
 const AWS = require('aws-sdk');
 const multerS3 = require('multer-s3');
 const fs = require('fs');
+const readline = require('readline');
 const pdf = require('pdf-parse');
 
 const db = require('../models');
@@ -60,37 +61,44 @@ router.delete('/:id', async (req, res, next) => {
 
 // 번역 파일 업로드
 // 2022.03.11 확인
-router.post('/file', isLoggedIn, upload.array('fileKey'), (req, res) => {
+router.post('/file', isLoggedIn, upload.array('fileKey'), async (req, res, next) => {
   // req에서 파일 추출해야함
-  console.log(req.body);
-  console.log('\n---------------------------------------------------------------------\n');
-  console.log(req.files);
-  /*const files = Array.from(req.files);
+  // fs로 버퍼를 string으로 추출
+  const files = Array.from(req.files);
+  const texts = [];
+  //console.log(files);
   if (files && files.length === 1) {
     if (files[0].mimetype === 'application/pdf') {
-      // 파일 path or instance of Buffer or URL이 들어가야함.
-      let dataBuffer = fs.createReadStream(files[0], 'utf-8');
-      console.log(`Type이 ${files[0].mimetype}이고, dataBuffer가 \n${dataBuffer}`);
-      pdf(dataBuffer).then((data) => {
-        // number of pages
-        console.log(data.numpages);
-        // number of rendered pages
-        console.log(data.numrender);
-        // PDF info
-        console.log(data.info);
-        // PDF metadata
-        console.log(data.metadata);
-        // PDF.js version
-        console.log(data.version);
-        // PDF text
-        console.log(data.text);
-      })
+      // 파일 경로 or 버퍼 인스턴스 or URL이 들어가야함.
+      const stream = await s3.getObject({ Bucket: 'dmtlabs-files', Key: files[0].key }, function(err, data) {
+        if (err) console.log(err);
+        console.log(data);
+      });
+      console.log('\n------------------------------------------------------------------\n');
+      
+      /*pdf(buffer).then((data) => {
+          // number of pages
+          console.log(data.numpages);
+          // number of rendered pages
+          console.log(data.numrender);
+          // PDF info
+          console.log(data.info);
+          // PDF metadata
+          console.log(data.metadata);
+          // PDF.js version
+          console.log(data.version);
+          // PDF text
+          console.log(data.text);
+        }).catch((err) => {
+          console.log("\nError!!!\n");
+          next(err);
+        });*/
     } else {
-
+      // 업로드한 파일이 pdf가 아닌 경우
     }
   } else {
-    console.log(files);
-  }*/
+    // 다중 파일 업로드
+  }
   return res.json(req.files.map((v) => decodeURI(v.location)));
 });
 

@@ -72,8 +72,8 @@ app.use(session({
     saveUninitialized: false,
     secret: process.env.COOKIE_SECRET,
     cookie: {
-        httpOnly: false,
-        secure: true,
+        httpOnly: true,
+        secure: prod ? true : false,
         domain: prod && '.dmtlabs.kr',
     },
     
