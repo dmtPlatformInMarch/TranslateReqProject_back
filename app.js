@@ -67,7 +67,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookie(process.env.COOKIE_SECRET));
 // session => 세션 정의를 위한 미들웨어. secret = cookie 해석에 필요한 키
 app.use(session({
-    proxy: true,
+    // proxy: true,
     resave: false,
     saveUninitialized: false,
     secret: process.env.COOKIE_SECRET,
@@ -76,7 +76,6 @@ app.use(session({
         secure: prod ? true : false,
         domain: prod && '.dmtlabs.kr',
     },
-    
 }));
 
 // passport => 로그인 모듈
@@ -98,7 +97,7 @@ app.get('/', (req, res) => {
 
 // http = 80 포트
 // https = 443 포트
-// localhosy = 3085 포트
-app.listen(prod ? process.env.PORT : 3085, () => {
-    console.log(`백엔드 서버 ${prod ? process.env.PORT : 3085}번 포트에서 작동 중.`);
+// localhost = 3085 포트
+app.listen(prod ? process.env.PORT : 80, () => {
+    console.log(`백엔드 서버 ${prod ? process.env.PORT : 80}번 포트에서 작동 중.`);
 });
