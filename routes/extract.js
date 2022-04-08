@@ -42,7 +42,7 @@ router.post('/docx', (req, res, next) => {
 });
 
 router.post('/pdf', (req, res, next) => {
-    if ( !req.files && !req.files.extFile) {
+    if (!req.files && !req.files.extFile) {
         res.status(400);
         res.end();
     }
