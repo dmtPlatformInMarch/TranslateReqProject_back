@@ -104,6 +104,6 @@ app.get('/', (req, res) => {
 // http = 80 포트
 // https = 443 포트
 // localhost = 3085 포트
-app.listen(prod ? process.env.PORT : 3085, () => {
-    console.log(`백엔드 서버 ${prod ? process.env.PORT : 3085}번 포트에서 작동 중.`);
+app.listen(prod ? process.env.PORT : 80, () => {
+    console.log(`백엔드 서버 ${prod ? process.env.PORT : 80}번 포트에서 작동 중.`);
 });
