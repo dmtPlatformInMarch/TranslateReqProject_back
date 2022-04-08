@@ -1,8 +1,6 @@
 const express = require('express');
 const AWS = require('aws-sdk');
-const fs = require('fs');
 const iconvLite = require('iconv-lite');
-const path = require('path');
 
 const db = require('../models');
 const router = express.Router();

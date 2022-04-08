@@ -1,4 +1,5 @@
 const express = require('express');
+const fileUpload = require('express-fileupload');
 const cors = require('cors');
 const passport = require('passport');
 const session = require('express-session');
@@ -10,11 +11,14 @@ const dotenv = require('dotenv');
 
 const prod = process.env.NODE_ENV === 'production';
 const db = require('./models');
+
 const passportConfig = require('./passport');
+
 const userRouter = require('./routes/user');
 const requestRouter = require('./routes/request');
 const requestsRouter = require('./routes/requests');
 const adminRouter = require('./routes/admin');
+const extractRouter = require('./routes/extract');
 
 const app = express();
 
@@ -61,6 +65,7 @@ if (prod) {
 }
 
 app.use('/', express.static('uploads'));
+app.use(fileUpload());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 // cookie => 쿠키 파싱
@@ -90,6 +95,7 @@ app.use('/user', userRouter);
 app.use('/request', requestRouter);
 app.use('/requests', requestsRouter);
 app.use('/admin', adminRouter);
+app.use('/extract', extractRouter);
 
 app.get('/', (req, res) => {
     res.status(200).send('[DMTlabs] Web Translate Service Backend');
@@ -98,6 +104,6 @@ app.get('/', (req, res) => {
 // http = 80 포트
 // https = 443 포트
 // localhost = 3085 포트
-app.listen(prod ? process.env.PORT : 80, () => {
-    console.log(`백엔드 서버 ${prod ? process.env.PORT : 80}번 포트에서 작동 중.`);
+app.listen(prod ? process.env.PORT : 3085, () => {
+    console.log(`백엔드 서버 ${prod ? process.env.PORT : 3085}번 포트에서 작동 중.`);
 });

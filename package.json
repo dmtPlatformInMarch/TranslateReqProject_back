@@ -10,6 +10,7 @@
   "author": "DMT",
   "license": "ISC",
   "dependencies": {
+    "adm-zip": "^0.5.9",
     "aws-sdk": "^2.1082.0",
     "bcrypt": "^5.0.1",
     "cookie-parser": "^1.4.6",
@@ -17,6 +18,7 @@
     "cross-env": "^7.0.3",
     "dotenv": "^16.0.0",
     "express": "^4.17.2",
+    "express-fileupload": "^1.3.1",
     "express-session": "^1.17.2",
     "helmet": "^5.0.2",
     "hpp": "^0.2.3",
