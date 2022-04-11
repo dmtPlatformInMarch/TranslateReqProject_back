@@ -1,5 +1,4 @@
 const express = require('express');
-const fileUpload = require('express-fileupload');
 const cors = require('cors');
 const passport = require('passport');
 const session = require('express-session');
@@ -65,7 +64,6 @@ if (prod) {
 }
 
 app.use('/', express.static('uploads'));
-app.use(fileUpload());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 // cookie => 쿠키 파싱

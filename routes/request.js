@@ -1,5 +1,7 @@
 const express = require('express');
 const multer = require('multer');
+const fileUpload = require('express-fileupload');
+const pdfparse = require('pdf-parse');
 const path = require('path');
 const AWS = require('aws-sdk');
 const multerS3 = require('multer-s3');
@@ -59,7 +61,77 @@ router.delete('/:id', async (req, res, next) => {
 // 번역 파일 업로드
 // 2022.03.11 확인
 router.post('/file', isLoggedIn, upload.array('fileKey'), async (req, res, next) => {
+  console.log(req.files);
   return res.json(req.files.map((v) => decodeURI(v.location)));
+});
+
+// pdf 파일 분석
+router.post('/extract/pdf', fileUpload(), (req, res, next) => {
+  let count = 0;
+  let str = '';
+  if (!req.files) {
+    // change 이벤트 리스너 동작
+    // 값이 비는 것도 바뀌는 것으로 인식해서 요청 보냄
+    res.status(300);
+    res.end();
+  } else {
+    pdfparse(req.files.fileKey).then(result => {
+      if (req.body.lang === '중국어(간체)' || req.body.lang === '중국어(번체)' || req.body.lang === '일본어') {
+        // 글자 단위 처리
+        str = result.text;
+        str.replace(/\n/g, "");
+        str.replace(/\s*/g, "");
+        for (let i = 0; i < str.length; i++) {
+          if (/[一-龥ぁ-ゔァ-ヴー々〆〤]/.test(str[i])) {
+            count++;
+          }
+        }
+        res.json({ 'count': count });
+        res.end();
+      } else {
+        // 공백 단위 처리
+        str = result.text;
+        let splitList = str.split(/\s+/);
+        count = splitList.length;
+        res.json({ 'count': count - 1 });
+        res.end();
+      }
+    });
+  }
+});
+
+// txt 파일 분석
+router.post('/extract/txt', fileUpload(), (req, res, next) => {
+  let count = 0;
+  let str = '';
+
+  if (!req.files) {
+    // change 이벤트 리스너 동작
+    // 값이 비는 것도 바뀌는 것으로 인식해서 요청 보냄
+    res.status(300);
+    res.end();
+  } else {
+    console.log("파일 : ", req.files);
+    str = req.files.fileKey.data.toString('utf-8');
+    if (req.body.lang === '중국어(간체)' || req.body.lang === '중국어(번체)' || req.body.lang === '일본어') {
+      // 글자 단위 처리
+      str.replace(/\n/g, "");
+      str.replace(/\s*/g, "");
+      for (let i = 0; i < str.length; i++) {
+        if (/[一-龥ぁ-ゔァ-ヴー々〆〤]/.test(str[i])) {
+          count++;
+        }
+      }
+      res.json({ 'count': count });
+      res.end();
+    } else {
+      // 공백 단위 처리
+      let splitList = str.split(/\s+/);
+      count = splitList.length;
+      res.json({ 'count': count });
+      res.end();
+    }
+  }
 });
 
 // 번역 파일 삭제
@@ -116,6 +188,7 @@ router.post('/', isLoggedIn, async (req, res, next) => {
       trans_state: req.body.trans_state,
       UserId: req.user.id,
     });
+    console.log("File : " + req.body.file);
     const files = await Promise.all(
       req.body.file.map((file, i) => {
         Array.from(file).forEach((f) => {
@@ -128,7 +201,6 @@ router.post('/', isLoggedIn, async (req, res, next) => {
             field: req.body.field[i],
             RequestId: newRequest.id
           });
-          console.log("File : " + f);
         });
       })
     );
