@@ -61,7 +61,6 @@ router.delete('/:id', async (req, res, next) => {
 // 번역 파일 업로드
 // 2022.03.11 확인
 router.post('/file', isLoggedIn, upload.array('fileKey'), async (req, res, next) => {
-  console.log(req.files);
   return res.json(req.files.map((v) => decodeURI(v.location)));
 });
 
@@ -111,7 +110,6 @@ router.post('/extract/txt', fileUpload(), (req, res, next) => {
     res.status(300);
     res.end();
   } else {
-    console.log("파일 : ", req.files);
     str = req.files.fileKey.data.toString('utf-8');
     if (req.body.lang === '중국어(간체)' || req.body.lang === '중국어(번체)' || req.body.lang === '일본어') {
       // 글자 단위 처리
@@ -188,9 +186,8 @@ router.post('/', isLoggedIn, async (req, res, next) => {
       trans_state: req.body.trans_state,
       UserId: req.user.id,
     });
-    console.log("File : " + req.body.file);
     const files = await Promise.all(
-      req.body.file.map((file, i) => {
+      req.body.file.map((file, i) => { 
         Array.from(file).forEach((f) => {
           db.Files.create({
             chainNumber: i,
@@ -200,6 +197,15 @@ router.post('/', isLoggedIn, async (req, res, next) => {
             grant_lang: req.body.grant_lang[i],
             field: req.body.field[i],
             RequestId: newRequest.id
+          }).then((data) => {
+            db.Fileinfos.create({
+              file_type: req.body.fileInfo[i].ext,
+              words: req.body.fileInfo[i].words,
+              cost: req.body.fileInfo[i].cost,
+              FileId: data.id,
+            });
+          }).catch((err) => {
+            console.log('error File create', err);
           });
         });
       })

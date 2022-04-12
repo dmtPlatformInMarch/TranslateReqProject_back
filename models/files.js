@@ -34,7 +34,9 @@ module.exports = (sequelize, DataTypes) => {
         db.Files.belongsTo(db.Users, {
             onDelete: 'CASCADE',
         }); // column에 UserId 추가
-        db.Files.hasOne(db.Fileinfos);
+        db.Files.hasOne(db.Fileinfos, {
+            onDelete: 'CASCADE',
+        });
     };
 
     return Files;
