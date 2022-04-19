@@ -44,7 +44,7 @@ router.patch('/:id', async (req, res, next) => {
 });
 
 // 의뢰 삭제
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', isLoggedIn, async (req, res, next) => {
   try {
     await db.Requests.destroy({
       where: {

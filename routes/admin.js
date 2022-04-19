@@ -13,7 +13,7 @@ const s3 = new AWS.S3({
 });
 
 // 의뢰 취소 (삭제)
-router.delete('/request/:id', async (req, res, next) => {
+router.delete('/request/delete/:id', async (req, res, next) => {
     try {
         await db.Requests.destroy({
             where: {
