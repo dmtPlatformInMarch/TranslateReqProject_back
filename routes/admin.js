@@ -84,7 +84,7 @@ router.get('/file/download/:filename', async (req, res, next) => {
             if (req.headers['user-agent'].includes("MSIE") || req.headers['user-agent'].includes("Trident")) {
                 return encodeURIComponent(req.params.filename).replace(/\\+/gi, "%20");
             } else if (req.headers['user-agent'].includes("Chrome")) {
-                return iconvLite.decode(iconvLite.encode(req.params.filename, "UTF-8"), 'ISO-8859-1');
+                return iconvLite.encode(req.params.filename, "UTF-8");
             } else if (req.headers['user-agent'].includes("Opera")) {
                 return iconvLite.decode(iconvLite.encode(req.params.filename, "UTF-8"), 'ISO-8859-1');
             } else if (req.headers['user-agent'].includes("Firefox")) {
@@ -92,7 +92,8 @@ router.get('/file/download/:filename', async (req, res, next) => {
             }
             return req.params.filename;
         }
-        res.attachment(fn()); // 헤더에 Content-Disposition : attachment; filename = fn()을 연결 => 다운로드함으로 인식
+
+        res.attachment(fn().toString()); // 헤더에 Content-Disposition : attachment; filename = fn()을 연결 => 다운로드함으로 인식
         const downloadS3 = await s3.getObject({
             Bucket: 'dmtlabs-files',
             Key: 'original/' + fn()
