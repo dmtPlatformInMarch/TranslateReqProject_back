@@ -8,14 +8,14 @@ const router = express.Router();
 
 router.get('/', isLoggedIn, async (req, res, next) => {
     const user = req.user;
-    res.json(user);
+    res.json({ 'id': user.id, 'nickname': user.nickname, 'email': user.email, 'permission': user.permission });
 });
 
 // 회원가입
 router.post('/signup', isNotLoggedIn, async (req, res, next) => {
     try {
         const hash = await bcrypt.hash(req.body.password, 10);
-        const exUser = await db.User.findOne({
+        const exUser = await db.Users.findOne({
             where: {
                 email: req.body.email,
             },
@@ -23,12 +23,12 @@ router.post('/signup', isNotLoggedIn, async (req, res, next) => {
         if (exUser) {
             // 회원가입이 된 이메일인가?
             // 403은 액세스 금지 => 대부분 에러를 따로 정의
-            return res.status(403).json({
+            return res.status(202).json({
                 errorCode: 1,
                 message: '이미 회원가입 된 계정입니다.'
             });
         }
-        const newUser = await db.User.create({
+        const newUser = await db.Users.create({
             email: req.body.email,
             password: hash,
             nickname: req.body.nickname,
@@ -60,7 +60,7 @@ router.post('/login', isNotLoggedIn, (req, res, next) => {
                 return next(err);
             }
             // 쿠키는 header, body는 옵션 -> 여기선 유저 정보를 내려줌.
-            return res.json(user);
+            return res.json({ 'id': user.id, 'nickname': user.nickname, 'email': user.email, 'permission': user.permission });
         });
     })(req, res, next);
 });
@@ -72,6 +72,8 @@ router.post('/logout', isLoggedIn, (req, res) => {
         // 세션 지우기는 선택
         req.session.destroy();
         return res.status(200).send('로그아웃 되었습니다.');
+    } else {
+        return res.status(401).send('Auth가 유효하지 않습니다.');
     }
 });
 

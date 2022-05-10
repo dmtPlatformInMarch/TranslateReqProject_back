@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         second_phone: {
             type: DataTypes.STRING(40),
-            allowNull: false,
+            allowNull: true,
         },
         date: {
             type: DataTypes.DATEONLY,
@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
         },
         options: {
             type: DataTypes.STRING(100),
-            allowNull: false,
+            allowNull: true,
         },
         trans_state: {
             type: DataTypes.STRING(40),
@@ -45,10 +45,12 @@ module.exports = (sequelize, DataTypes) => {
     });
 
     Requests.associate = (db) => {
-        db.Requests.belongsTo(db.User, {
+        db.Requests.belongsTo(db.Users, {
             onDelete: 'CASCADE',
         }); // 본인 column에 UserId 추가
-        db.Requests.hasMany(db.File);
+        db.Requests.hasMany(db.Files, {
+            onDelete: 'CASCADE',
+        });
     };
 
     return Requests;

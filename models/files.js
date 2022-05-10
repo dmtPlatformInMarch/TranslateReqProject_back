@@ -1,5 +1,5 @@
 module.exports = (sequelize, DataTypes) => {
-    const File = sequelize.define('File', {
+    const Files = sequelize.define('Files', {
         chainNumber: {
             type: DataTypes.INTEGER,
             allowNull: false,
@@ -27,14 +27,17 @@ module.exports = (sequelize, DataTypes) => {
         collate: 'utf8_general_ci',
     });
 
-    File.associate = (db) => {
-        db.File.belongsTo(db.Requests, {
+    Files.associate = (db) => {
+        db.Files.belongsTo(db.Requests, {
             onDelete: 'CASCADE',
         }); // column에 RequestId 추가
-        db.File.belongsTo(db.User, {
-            onDelete: 'CASCADE'
+        db.Files.belongsTo(db.Users, {
+            onDelete: 'CASCADE',
         }); // column에 UserId 추가
+        db.Files.hasOne(db.Fileinfos, {
+            onDelete: 'CASCADE',
+        });
     };
 
-    return File;
+    return Files;
 };
