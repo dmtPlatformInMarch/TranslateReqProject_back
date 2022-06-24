@@ -22,7 +22,7 @@ const upload = multer({
   // 임시스토리지 -> 나중에 교체
   storage: multerS3({
     s3: s3,
-    bucket: 'dmtlabs-files',
+    bucket: process.env.S3_BUCKET,
     contentDisposition(req, file, cb) {
       cb(null, `attachment; filename=${encodeURI(file.originalname)}`);
     },
@@ -138,7 +138,7 @@ router.delete('/file/delete', isLoggedIn, async (req, res, next) => {
     if (req.body.files.length === 1) {
       // 단일 파일의 경우
       const deleteResponse = await s3.deleteObjects({
-        Bucket: 'dmtlabs-files',
+        Bucket: process.env.S3_BUCKET,
         Delete: {
           Objects: [{ Key: `original/${req.body.files[0].toString().substring(req.body.files[0].toString().lastIndexOf("/") + 1)}` }],
           Quiet: false
@@ -153,7 +153,7 @@ router.delete('/file/delete', isLoggedIn, async (req, res, next) => {
       const deleteResponse = await Array.from(req.body.files).forEach((f) => {
         console.log(`original/${f.toString().substring(req.body.files[0].toString().lastIndexOf("/") + 1)}`);
         s3.deleteObjects({
-          Bucket: 'dmtlabs-files',
+          Bucket: process.env.S3_BUCKET,
           Delete: {
             Objects: [{ Key: `original/${f.toString().substring(req.body.files[0].toString().lastIndexOf("/") + 1)}` }],
             Quiet: false

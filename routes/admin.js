@@ -95,7 +95,7 @@ router.get('/file/download/:filename', async (req, res, next) => {
 
         res.attachment(fn().toString()); // 헤더에 Content-Disposition : attachment; filename = fn()을 연결 => 다운로드함으로 인식
         const downloadS3 = await s3.getObject({
-            Bucket: 'dmtlabs-files',
+            Bucket: process.env.S3_BUCKET,
             Key: 'original/' + fn()
         }).createReadStream();
         downloadS3.pipe(res);
