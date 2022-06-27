@@ -107,9 +107,6 @@ router.get('/file/extract/:filename', async (req, res, next) => {
                     if (err) console.log(err);
                     const bufferArray = new Uint8Array(data.Body);
                     // pdf 파싱 내용 작성
-                    function(err) {
-                        console.log(err);
-                    });
                     res.send("pdf 파싱 테스트 중");
                 });
                 break;
