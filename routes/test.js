@@ -1,10 +1,13 @@
 const express = require('express');
 const multer = require('multer');
 const iconvLite = require('iconv-lite');
-const pdfparse = require('pdf-parse');
+
 const AWS = require('aws-sdk');
 
 const router = express.Router();
+
+// pdfParser 준비
+
 
 // multer 미들웨어 파싱 (비 저장)
 // MemoryStorage 사용 예상
@@ -102,9 +105,10 @@ router.get('/file/extract/:filename', async (req, res, next) => {
                     Key: `original/${req.params.filename}`
                 }, (err, data) => {
                     if (err) console.log(err);
-                    console.log(data);
-                    pdfparse(data.Body).then(result => {
-                        console.log(result.text);
+                    const bufferArray = new Uint8Array(data.Body);
+                    // pdf 파싱 내용 작성
+                    function(err) {
+                        console.log(err);
                     });
                     res.send("pdf 파싱 테스트 중");
                 });
