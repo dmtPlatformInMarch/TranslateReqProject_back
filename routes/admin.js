@@ -95,7 +95,7 @@ router.get('/file/download/:filename', async (req, res, next) => {
 
         res.attachment(fn().toString()); // 헤더에 Content-Disposition : attachment; filename = fn()을 연결 => 다운로드함으로 인식
         const downloadS3 = await s3.getObject({
-            Bucket: 'dmtlabs-files',
+            Bucket: process.env.S3_BUCKET,
             Key: 'original/' + fn()
         }).createReadStream();
         downloadS3.pipe(res);
@@ -112,12 +112,24 @@ router.delete('/user/delete/:email', async (req, res, next) => {
             where: {
                 email: req.params.email,
             }
-        })
+        });
         return res.send('유저 강제 탈퇴');
     } catch (err) {
         console.log(err);
         next(err);
     }
+});
+
+router.post('/stateSet', async (req, res, next) => {
+    await db.Requests.update(
+        {
+            trans_state: req.body.state
+        },
+        {
+            where: { id: req.body.request.id }
+        }
+    );
+    return res.send('번역 상태 변경');
 });
 
 module.exports = router;
