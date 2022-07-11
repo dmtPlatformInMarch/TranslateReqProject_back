@@ -1,13 +1,39 @@
 const express = require('express');
 const multer = require('multer');
 const iconvLite = require('iconv-lite');
-
+const pdfjsLib = require('pdfjs-dist/build/pdf');
+const WordExtractor = require('word-extractor');
 const AWS = require('aws-sdk');
 
 const router = express.Router();
 
 // pdfParser 준비
+const getPdfText = async (data) => {
+    let line = 0;
+    let finalString = "";
+    let doc = await pdfjsLib.getDocument({data}).promise;
+    let pageTexts = Array.from({length: doc.numPages}, async (v, i) => {
+        // arr은 각 토큰 객체를 담은 객체 배열
+        let arr = (await (await doc.getPage(i+1)).getTextContent()).items;
+        // map을 통해 객체의 str = text 정보만 가진 배열로 다시 만듬.
+        return arr.map(token => {
+            // 구문 분석기
+            finalString = "";
+            if (line != token.transform[5]) {
+                if (line != 0) {
+                    finalString += '\r\n';
+                }
+                line = token.transform[5];
+            }
+            finalString += token.str;
+            return finalString;
+        }).join(""); // join을 통해 문자열로 재생성
+    });
+    return (await Promise.all(pageTexts)).join("");
+}
 
+// wordParser 준비
+const wordExtractor = new WordExtractor();
 
 // multer 미들웨어 파싱 (비 저장)
 // MemoryStorage 사용 예상
@@ -107,7 +133,27 @@ router.get('/file/extract/:filename', async (req, res, next) => {
                     if (err) console.log(err);
                     const bufferArray = new Uint8Array(data.Body);
                     // pdf 파싱 내용 작성
-                    res.send("pdf 파싱 테스트 중");
+                    const parsing = getPdfText(bufferArray).then(
+                        (result) => {
+                            res.status(200).send(result);
+                        }
+                    );
+                });
+                break;
+            case 'docx':
+            case 'doc':
+                await s3.getObject({
+                    Bucket: process.env.S3_BUCKET,
+                    Key: `original/${req.params.filename}`
+                }, (err, data) => {
+                    if (err) console.log(err);
+                    //console.log(data?.Body);
+                    // const bufferArray = new Uint8Array(data.Body);
+                    // docx 파싱 내용 작성
+                    const extracted = wordExtractor.extract(data?.Body);
+                    extracted.then((result) => {
+                        res.status(200).send(result.getBody());
+                    });
                 });
                 break;
             default:
