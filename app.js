@@ -61,7 +61,7 @@ if (prod) {
     // cors => 해당 주소에 대한 액세스 허용
     app.use(cors({
         origin: 'http://localhost:3080',
-        credentials: true,
+        credentials: false,
     }));
 }
 
