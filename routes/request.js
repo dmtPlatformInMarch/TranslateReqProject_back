@@ -30,7 +30,7 @@ const upload = multer({
       cb(null, `original/${Date.now()}${path.basename(file.originalname)}`);
     },
   }),
-  limit: { fileSize: 20 * 1024 * 1024 }, // 20MB (byte단위)
+  limit: { fileSize: 500 * 1024 * 1024 }, // 500MB (byte단위)
 });
 
 // 의뢰 수정
