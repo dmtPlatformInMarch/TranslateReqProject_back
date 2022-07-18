@@ -18,15 +18,17 @@ const s3 = new AWS.S3({
 
 const msToString = (time) => {
     if (time === 0) {
-        return "00:00.000";
+        return "00:00:00.000";
     } else {
-        const min = (time / 60000) >= 1 ? parseInt(time/60000) : 0;
-        const sec = min >= 1 ? (time % 60000 / 0.6 / 1000) >= 1 ? parseInt((time % 60000) / 0.6 / 1000) : 0 : (time / 1000) >= 1 ? parseInt(time / 1000) : 0;
-        const mill = min >= 1 ? parseInt((time % 60000) / 0.6 % 100) : (time / 1000) >= 1 ? time % 1000 : time;
+        const hour = (time / 3600000) >= 1 ? parseInt(time/3600000) : 0;
+        const min = (time / 60000) >= 1 ? (time / 60000) >= 60 ? parseInt(time / 60000) - 60 >= 1 ? parseInt(time / 60000) - 60 : 0 : parseInt(time / 60000) : 0;
+        const sec = (time % 60000) >= 1 ? parseInt(time % 60000 / 1000) >= 1 ? parseInt(time % 60000 / 1000) : 0 : parseInt(time / 1000) >= 1 ? parseInt(time / 1000) : 0;
+        const mill = time % 1000;
+        const ooHour = (hour / 10) >= 1 ? hour : `0${hour}`;
         const ooMin = (min / 10) >= 1 ? min : `0${min}`;
         const ooSec = (sec / 10) >= 1 ? sec : `0${sec}`;
         const oooMill = (mill / 100) >= 1 ? mill : (mill / 10) >= 1 ? `0${mill}` : `00${mill}`;
-        return `${ooMin}:${ooSec}.${oooMill}`;
+        return `${ooHour}:${ooMin}:${ooSec}.${oooMill}`;
     }
 }
 
