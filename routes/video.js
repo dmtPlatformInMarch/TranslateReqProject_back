@@ -34,10 +34,6 @@ router.get('/', (req, res) => {
     return res.status(200).send('연결 안정적');
 });
 
-router.get('/undefined', (req, res) => {
-    return res.status(404).send("비 정상적인 접근");
-});
-
 router.post('/presigned', upload.single('fileKey'), async (req, res, next) => {
     const params = {
         Bucket: process.env.S3_BUCKET,
