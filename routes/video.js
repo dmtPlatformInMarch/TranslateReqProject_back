@@ -38,7 +38,7 @@ router.post('/presigned', upload.single('fileKey'), async (req, res, next) => {
     const params = {
         Bucket: process.env.S3_BUCKET,
         Key: 'videoes/' + req.file.originalname,
-        Expires: 60 * 3,
+        Expires: 60 * 10,
     }
     try {
         //console.log(req.file);
