@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const AWS = require('aws-sdk');
 const axios = require('axios');
+const iconvLite = require('iconv-lite');
 
 const router = express.Router();
 
@@ -101,48 +102,51 @@ router.get('/track/:filename', async (req, res, next) => {
             Bucket: process.env.S3_BUCKET,
             Key: `tracks/${req.params.filename}.vtt`
         }, (err, data) => {
-            if (err) console.log(err);
+            if (err) {
+                console.log(err);
+                res.send("자막 파일이 존재하지 않음.");
+            } else {
+                const body = new Buffer.from(data?.Body).toString('utf8');
+                if(body.toString().indexOf('WEBVTT') === -1) {
+                    res.send('vtt파일을 찾을 수 없거나, 형식이 알맞지 않습니다.');
+                }
 
-            const body = new Buffer.from(data.Body).toString('utf8');
-            if(body.toString().indexOf('WEBVTT') === -1) {
-                res.send('vtt파일을 찾을 수 없거나, 형식이 알맞지 않습니다.');
-            }
-
-            // 트랙을 시간과 대사 배열로 저장.
-            // 여러 줄인 경우 줄바꿈 문자를 통한 하나의 인덱스에 저장.
-            const tracks = body.toString().substring(body.toString().search(/(\d\d:\d\d.\d\d\d) --> (\d\d:\d\d.\d\d\d)/gm)).split('\n');
-            for (let [index, str] of tracks.entries()) {
-                if (/(\d\d:\d\d.\d\d\d) --> (\d\d:\d\d.\d\d\d)/gm.test(str)) {
-                    // 시간인 경우
-                    const start = str.substring(0, str.indexOf('-')).trim();
-                    const end = str.substring(str.lastIndexOf('>') + 1).trim();
-                    timeStamp.push({ "start": start, "end": end });
-                } else {
-                    if (str === '') continue
-                    else {
-                        if (tracks[index-1].match(/(\d\d:\d\d.\d\d\d) --> (\d\d:\d\d.\d\d\d)/gm)) {
-                            // 한줄 대사
-                            track.push(str);
-                        } else {
-                            // 여러줄 대사
-                            let temp = track.pop();
-                            track.push(temp.concat(`\n${str}`));
+                // 트랙을 시간과 대사 배열로 저장.
+                // 여러 줄인 경우 줄바꿈 문자를 통한 하나의 인덱스에 저장.
+                const tracks = body.toString().substring(body.toString().search(/(\d\d:\d\d.\d\d\d) --> (\d\d:\d\d.\d\d\d)/gm)).split('\n');
+                for (let [index, str] of tracks.entries()) {
+                    if (/(\d\d:\d\d.\d\d\d) --> (\d\d:\d\d.\d\d\d)/gm.test(str)) {
+                        // 시간인 경우
+                        const start = str.substring(0, str.indexOf('-')).trim();
+                        const end = str.substring(str.lastIndexOf('>') + 1).trim();
+                        timeStamp.push({ "start": start, "end": end });
+                    } else {
+                        if (str === '') continue
+                        else {
+                            if (tracks[index-1].match(/(\d\d:\d\d.\d\d\d) --> (\d\d:\d\d.\d\d\d)/gm)) {
+                                // 한줄 대사
+                                track.push(str);
+                            } else {
+                                // 여러줄 대사
+                                let temp = track.pop();
+                                track.push(temp.concat(`\n${str}`));
+                            }
                         }
                     }
                 }
-            }
 
-            // JSON 파싱
-            let trackToJson = [];
-            for (let [index] of timeStamp.entries()) {
-                trackToJson.push({
-                    "start": timeStamp[index].start,
-                    "end": timeStamp[index].end,
-                    "text": track[index]
-                });
-            }
+                // JSON 파싱
+                let trackToJson = [];
+                for (let [index] of timeStamp.entries()) {
+                    trackToJson.push({
+                        "start": timeStamp[index].start,
+                        "end": timeStamp[index].end,
+                        "text": track[index]
+                    });
+                }
 
-            res.status(200).json({ "segment": trackToJson });
+                res.status(200).json({ "segment": trackToJson });
+            }
         });
     } catch (error) {
         next(error);
@@ -150,7 +154,9 @@ router.get('/track/:filename', async (req, res, next) => {
 });
 
 router.post('/recognition', async (req, res, next) => {
-    let trackString = "WEBVTT\n\n";
+    let trackVTT = "WEBVTT\n\n";
+    let trackSRT = "";
+    let count = 1;
     try {
         //console.log("받은 파일 URL : ", req.body.fileURL);
         const naverResponse = await axios.post(`${process.env.NAVER_INVOKE_URL}/recognizer/url`, {
@@ -165,15 +171,23 @@ router.post('/recognition', async (req, res, next) => {
                 "Content-Type": "application/json"
             }
         });
+
         if (naverResponse.data.message === "Succeeded") {
             const segments = naverResponse.data.segments;
             for (const [index, segment] of segments.entries()) {
                 const startTime = msToString(segment.start);
+                const srtStartTime = startTime.replace('.', ',');
                 const endTime = msToString(segment.end);
-                trackString += `${startTime} --> ${endTime}\n${segment.text}\n\n`;
+                const srtEndTime = endTime.replace('.', ',');
+                trackVTT += `${startTime} --> ${endTime}\n${segment.text}\n\n`;
+                trackSRT += `${count}\n${srtStartTime} --> ${srtEndTime}\n${segment.text}\n\n`
+                count++;
             }
-            
-            res.status(200).send(trackString);
+            if (req.body.ext === 'srt') {
+                res.status(200).send(trackSRT);
+            } else {
+                res.status(200).send(trackVTT);
+            }
         } else {
             res.status(301).json({
                 "message": "파일 인식 실패",
@@ -181,6 +195,55 @@ router.post('/recognition', async (req, res, next) => {
                 "trackURL" : ""
             });
         }
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.post('/track/create', async (req, res, next) => {
+    try {
+        await s3.putObject({
+            Bucket: process.env.S3_BUCKET,
+            Key: `tracks/${req.body.fileName}${req.body.ext === "srt" ? ".srt" : ".vtt"}`,
+            Body: req.body.track
+        }, (err, data) => {
+            if (err) res.status(400).send("업로드 에러");
+            res.status(200).send("자막 업로드 완료");
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.get('/download/:filename', async (req, res, next) => {
+    try {
+        const fn = () => {
+            if (req.headers['user-agent'].includes("MSIE") || req.headers['user-agent'].includes("Trident")) {
+                return encodeURIComponent(req.params.filename).replace(/\\+/gi, "%20");
+            } else if (req.headers['user-agent'].includes("Chrome")) {
+                return iconvLite.encode(req.params.filename, "UTF-8");
+            } else if (req.headers['user-agent'].includes("Opera")) {
+                return iconvLite.decode(iconvLite.encode(req.params.filename, "UTF-8"), 'ISO-8859-1');
+            } else if (req.headers['user-agent'].includes("Firefox")) {
+                return iconvLite.decode(iconvLite.encode(req.params.filename, "UTF-8"), 'ISO-8859-1');
+            }
+            return req.params.filename;
+        }
+        
+        res.attachment(fn().toString());
+        const downloadS3 = await s3.getObject({
+            Bucket: process.env.S3_BUCKET,
+            Key: 'tracks/' + fn()
+        }).createReadStream();
+        downloadS3.pipe(res);
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.post('/downloadRT/:filename', async (req, res, next) => {
+    try {
+
     } catch (error) {
         next(error);
     }
