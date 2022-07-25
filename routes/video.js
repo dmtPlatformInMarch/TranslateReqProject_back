@@ -113,9 +113,9 @@ router.get('/track/:filename', async (req, res, next) => {
 
                 // 트랙을 시간과 대사 배열로 저장.
                 // 여러 줄인 경우 줄바꿈 문자를 통한 하나의 인덱스에 저장.
-                const tracks = body.toString().substring(body.toString().search(/(\d\d:\d\d.\d\d\d) --> (\d\d:\d\d.\d\d\d)/gm)).split('\n');
+                const tracks = body.toString().substring(body.toString().search(/(\d\d:\d\d:\d\d.\d\d\d) --> (\d\d:\d\d:\d\d.\d\d\d)/gm)).split('\n');
                 for (let [index, str] of tracks.entries()) {
-                    if (/(\d\d:\d\d.\d\d\d) --> (\d\d:\d\d.\d\d\d)/gm.test(str)) {
+                    if (/(\d\d:\d\d:\d\d.\d\d\d) --> (\d\d:\d\d:\d\d.\d\d\d)/gm.test(str)) {
                         // 시간인 경우
                         const start = str.substring(0, str.indexOf('-')).trim();
                         const end = str.substring(str.lastIndexOf('>') + 1).trim();
@@ -123,7 +123,7 @@ router.get('/track/:filename', async (req, res, next) => {
                     } else {
                         if (str === '') continue
                         else {
-                            if (tracks[index-1].match(/(\d\d:\d\d.\d\d\d) --> (\d\d:\d\d.\d\d\d)/gm)) {
+                            if (tracks[index-1].match(/(\d\d:\d\d:\d\d.\d\d\d) --> (\d\d:\d\d:\d\d.\d\d\d)/gm)) {
                                 // 한줄 대사
                                 track.push(str);
                             } else {
