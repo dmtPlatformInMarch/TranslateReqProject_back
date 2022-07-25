@@ -183,11 +183,19 @@ router.post('/recognition', async (req, res, next) => {
                 trackSRT += `${count}\n${srtStartTime} --> ${srtEndTime}\n${segment.text}\n\n`
                 count++;
             }
-            if (req.body.ext === 'srt') {
-                res.status(200).send(trackSRT);
-            } else {
-                res.status(200).send(trackVTT);
-            }
+
+            await s3.putObject({
+                Bucket: process.env.S3_BUCKET,
+                Key: `tracks/${req.body.fileName}.vtt`,
+                Body: trackVTT
+            }, (err, data) => {
+                if (err) res.status(400).send("자막 생성 에러");
+                if (req.body.ext === 'srt') {
+                    res.status(200).send(trackSRT);
+                } else {
+                    res.status(200).send(trackVTT);
+                }
+            });
         } else {
             res.status(301).json({
                 "message": "파일 인식 실패",
