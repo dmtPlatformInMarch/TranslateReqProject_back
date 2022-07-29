@@ -2,4 +2,15 @@
 
 Backend Port
 
->    3085
+>   3085
+
+
+MySQL ORM
+
+>   sequelize
+
+First Clone
+
+>   sequelize db:create
+
+- 위의 명령어로 config의 local DB 생성 (필수!!)
