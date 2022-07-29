@@ -108,7 +108,7 @@ router.get('/track/:filename', async (req, res, next) => {
             } else {
                 const body = new Buffer.from(data?.Body).toString('utf8');
                 if(body.toString().indexOf('WEBVTT') === -1) {
-                    res.send('vtt파일을 찾을 수 없거나, 형식이 알맞지 않습니다.');
+                    res.send('파일을 찾을 수 없거나, 파일이 손상되었습니다.');
                 }
 
                 // 트랙을 시간과 대사 배열로 저장.
@@ -134,19 +134,19 @@ router.get('/track/:filename', async (req, res, next) => {
                         }
                     }
                 }
-
-                // JSON 파싱
-                let trackToJson = [];
-                for (let [index] of timeStamp.entries()) {
-                    trackToJson.push({
-                        "start": timeStamp[index].start,
-                        "end": timeStamp[index].end,
-                        "text": track[index]
-                    });
-                }
-
-                res.status(200).json({ "segment": trackToJson });
             }
+
+            // JSON 파싱
+            let trackToJson = [];
+            const fullTrack = track.join('\n');
+            for (let [index] of timeStamp.entries()) {
+                trackToJson.push({
+                    "start": timeStamp[index].start,
+                    "end": timeStamp[index].end,
+                    "text": track[index]
+                });
+            }
+            res.status(200).json({ "segment": trackToJson, "text": fullTrack });
         });
     } catch (error) {
         next(error);
