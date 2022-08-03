@@ -154,6 +154,8 @@ router.get('/track/:filename', async (req, res, next) => {
 });
 
 router.post('/recognition', async (req, res, next) => {
+    let timeStamp = [];
+    let trackArray = [];
     let trackVTT = "WEBVTT\n\n";
     let trackSRT = "";
     let count = 1;
@@ -179,6 +181,8 @@ router.post('/recognition', async (req, res, next) => {
                 const srtStartTime = startTime.replace('.', ',');
                 const endTime = msToString(segment.end);
                 const srtEndTime = endTime.replace('.', ',');
+                timeStamp.push({ "start": startTime, "end": endTime });
+                trackArray.push(segment.text);
                 trackVTT += `${startTime} --> ${endTime}\n${segment.text}\n\n`;
                 trackSRT += `${count}\n${srtStartTime} --> ${srtEndTime}\n${segment.text}\n\n`
                 count++;
@@ -191,9 +195,17 @@ router.post('/recognition', async (req, res, next) => {
             }, (err, data) => {
                 if (err) res.status(400).send("자막 생성 에러");
                 if (req.body.ext === 'srt') {
-                    res.status(200).send(trackSRT);
+                    res.status(200).json({
+                        "track": trackSRT,
+                        "segment": trackArray,
+                        "timeline": timeStamp
+                    });
                 } else {
-                    res.status(200).send(trackVTT);
+                    res.status(200).json({
+                        "track": trackVTT,
+                        "segment": trackArray,
+                        "timeline": timeStamp
+                    });
                 }
             });
         } else {
@@ -218,6 +230,70 @@ router.post('/track/create', async (req, res, next) => {
             if (err) res.status(400).send("업로드 에러");
             res.status(200).send("자막 업로드 완료");
         });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.post('/track/trans', async (req, res, next) => {
+    try {
+        const track = req.body.track.join("\n\n");
+        const transTrack = await axios.post('https://dmtcloud.kr/translate-text', {
+            "to": req.body.to,
+            "from": req.body.from,
+            "text": track
+        });
+        if (transTrack?.data[0]?.translations === null) {
+            res.status(403).send("번역 오류");
+        }
+        const newTrack = transTrack.data[0].translations.split("\n");
+        res.status(200).json({
+            "from": req.body.from,
+            "to": req.body.to,
+            "translations": newTrack
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
+router.post('/track/format', async (req, res, next) => {
+    let timeStamp = [];
+    let track = "";
+    let mode = "vtt";
+    let trackVTT = "WEBVTT\n\n";
+    let trackSRT = "";
+    
+    try {
+        timeStamp = req.body.timeline;
+        track = req.body.track.join("\n\n");
+        mode = req.body.mode;
+
+        const transTrack = await axios.post('https://dmtcloud.kr/translate-text', {
+            "to": req.body.to,
+            "from": req.body.from,
+            "text": track
+        });
+        if (transTrack?.data[0]?.translations === null) {
+            res.status(403).send("번역 오류");
+        }
+
+        const newTrack = transTrack.data[0].translations.split("\n");
+        if (mode === "srt") {
+            for (let i = 0; i < (timeStamp.length <= newTrack.length ? timeStamp.length : newTrack.length); i++) {
+                let srtStartTime = timeStamp[i].start.replace('.', ',');
+                let srtEndTime = timeStamp[i].end.replace('.', ',');
+                trackSRT += `${i+1}\n${srtStartTime} --> ${srtEndTime}\n${newTrack[i]}\n\n`
+            }
+            res.status(200).send(trackSRT);
+        } else {
+            for (let i = 0; i < (timeStamp.length <= newTrack.length ? timeStamp.length : newTrack.length); i++) {
+                let startTime = timeStamp[i].start;
+                let endTime = timeStamp[i].end;
+                trackVTT += `${startTime} --> ${endTime}\n${newTrack[i]}\n\n`;
+            }
+            res.status(200).send(trackVTT);
+        }
     } catch (error) {
         next(error);
     }
