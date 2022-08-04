@@ -4,6 +4,9 @@ Backend Port
 
 >   3085
 
+MySQL Version
+
+>   8.0.28^
 
 MySQL ORM
 
