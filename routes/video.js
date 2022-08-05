@@ -113,22 +113,23 @@ router.get('/track/:filename', async (req, res, next) => {
 
                 // 트랙을 시간과 대사 배열로 저장.
                 // 여러 줄인 경우 줄바꿈 문자를 통한 하나의 인덱스에 저장.
-                const tracks = body.toString().substring(body.toString().search(/(\d\d:\d\d:\d\d.\d\d\d) --> (\d\d:\d\d:\d\d.\d\d\d)/gm)).split('\n');
+                const tracks = body.toString().substring(body.toString().search(/(((\d\d:\d\d)|(\d\d)):\d\d.\d\d\d) --> (((\d\d:\d\d)|(\d\d)):\d\d.\d\d\d)/gm)).split('\n');
                 for (let [index, str] of tracks.entries()) {
-                    if (/(\d\d:\d\d:\d\d.\d\d\d) --> (\d\d:\d\d:\d\d.\d\d\d)/gm.test(str)) {
+                    if (/(((\d\d:\d\d)|(\d\d)):\d\d.\d\d\d) --> (((\d\d:\d\d)|(\d\d)):\d\d.\d\d\d)/gm.test(str)) {
                         // 시간인 경우
                         const start = str.substring(0, str.indexOf('-')).trim();
                         const end = str.substring(str.lastIndexOf('>') + 1).trim();
                         timeStamp.push({ "start": start, "end": end });
                     } else {
-                        if (str === '') continue
+                        if (str === '' || index === 0) continue;
                         else {
-                            if (tracks[index-1].match(/(\d\d:\d\d:\d\d.\d\d\d) --> (\d\d:\d\d:\d\d.\d\d\d)/gm)) {
+                            if (/(((\d\d:\d\d)|(\d\d)):\d\d.\d\d\d) --> (((\d\d:\d\d)|(\d\d)):\d\d.\d\d\d)/gm.test(tracks[index-1])) {
                                 // 한줄 대사
                                 track.push(str);
                             } else {
                                 // 여러줄 대사
                                 let temp = track.pop();
+                                if (temp === undefined) continue;
                                 track.push(temp.concat(`\n${str}`));
                             }
                         }
@@ -237,21 +238,56 @@ router.post('/track/create', async (req, res, next) => {
 
 router.post('/track/trans', async (req, res, next) => {
     try {
-        const track = req.body.track.join("\n\n");
-        const transTrack = await axios.post('https://dmtcloud.kr/translate-text', {
-            "to": req.body.to,
-            "from": req.body.from,
-            "text": track
-        });
-        if (transTrack?.data[0]?.translations === null) {
-            res.status(403).send("번역 오류");
+        const tracks = req.body.track;
+        let newTrack = [];
+        if (tracks.length > 180) {
+            let count = parseInt(tracks.length / 100);
+            for (let i = 0; i < count; i++) {
+                const text = tracks.slice(i*100, (i+1)*100).join("\n\n");
+                const transTrack = await axios.post('https://dmtcloud.kr/translate-text', {
+                    "to": req.body.to,
+                    "from": req.body.from,
+                    "text": text
+                });
+                if (transTrack?.data[0]?.translations === null) {
+                    return res.status(403).send("번역 오류");
+                }
+                const temp = transTrack.data[0].translations.split("\n");
+                newTrack = newTrack.concat(temp);
+            }
+            const text = tracks.slice(parseInt(tracks.length / 100) * 100).join("\n\n");
+            const transTrack = await axios.post('https://dmtcloud.kr/translate-text', {
+                "to": req.body.to,
+                "from": req.body.from,
+                "text": text
+            });
+            if (transTrack?.data[0]?.translations === null) {
+                return res.status(403).send("번역 오류");
+            }
+            const temp = transTrack.data[0].translations.split("\n");
+            newTrack = newTrack.concat(temp);
+            res.status(200).json({
+                "from": req.body.from,
+                "to": req.body.to,
+                "translations": newTrack
+            });
+        } else {
+            const track = req.body.track.join("\n\n");
+            const transTrack = await axios.post('https://dmtcloud.kr/translate-text', {
+                "to": req.body.to,
+                "from": req.body.from,
+                "text": track
+            });
+            if (transTrack?.data[0]?.translations === null) {
+                return res.status(403).send("번역 오류");
+            }
+            newTrack = transTrack.data[0].translations.split("\n");
+            res.status(200).json({
+                "from": req.body.from,
+                "to": req.body.to,
+                "translations": newTrack
+            });
         }
-        const newTrack = transTrack.data[0].translations.split("\n");
-        res.status(200).json({
-            "from": req.body.from,
-            "to": req.body.to,
-            "translations": newTrack
-        });
     } catch (error) {
         next(error);
     }
