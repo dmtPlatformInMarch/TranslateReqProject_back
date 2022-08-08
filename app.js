@@ -65,9 +65,18 @@ if (prod) {
     }));
 }
 
+// 로컬 저장소
 app.use('/', express.static('uploads'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+// 요청 설정
+app.use(express.json({
+    limit: '1mb',
+}));
+app.use(express.urlencoded({
+    limit: '1mb',
+    extended: false 
+}));
+
 // cookie => 쿠키 파싱
 app.use(cookie(process.env.COOKIE_SECRET));
 // session => 세션 정의를 위한 미들웨어. secret = cookie 해석에 필요한 키

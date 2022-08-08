@@ -104,11 +104,11 @@ router.get('/track/:filename', async (req, res, next) => {
         }, (err, data) => {
             if (err) {
                 console.log(err);
-                res.send("자막 파일이 존재하지 않음.");
+                return res.status(403).send("자막 파일이 존재하지 않음.");
             } else {
                 const body = new Buffer.from(data?.Body).toString('utf8');
                 if(body.toString().indexOf('WEBVTT') === -1) {
-                    res.send('파일을 찾을 수 없거나, 파일이 손상되었습니다.');
+                    return res.status(403).send('파일을 찾을 수 없거나, 파일이 손상되었습니다.');
                 }
 
                 // 트랙을 시간과 대사 배열로 저장.
