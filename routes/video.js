@@ -3,6 +3,7 @@ const multer = require('multer');
 const AWS = require('aws-sdk');
 const axios = require('axios');
 const iconvLite = require('iconv-lite');
+const { ResetQueue } = require('pdfjs-dist');
 
 const router = express.Router();
 
@@ -240,6 +241,7 @@ router.post('/track/trans', async (req, res, next) => {
     try {
         const tracks = req.body.track;
         let newTrack = [];
+        // 로직
         if (tracks.length > 180) {
             let count = parseInt(tracks.length / 100);
             for (let i = 0; i < count; i++) {
@@ -293,6 +295,7 @@ router.post('/track/trans', async (req, res, next) => {
     }
 });
 
+// RealTrack에서 오는 API
 router.post('/track/format', async (req, res, next) => {
     let timeStamp = [];
     let track = "";
@@ -300,40 +303,107 @@ router.post('/track/format', async (req, res, next) => {
     let trackVTT = "WEBVTT\n\n";
     let trackSRT = "";
     
-    try {
+    let refinetrack = []
+    let newTrack = [];
+    try{
         timeStamp = req.body.timeline;
-        track = req.body.track.join("\n\n");
+        // track = req.body.track.join("\n\n");
+        track = req.body.track
         mode = req.body.mode;
 
-        const transTrack = await axios.post('https://dmtcloud.kr/translate-text', {
-            "to": req.body.to,
-            "from": req.body.from,
-            "text": track
-        });
-        if (transTrack?.data[0]?.translations === null) {
-            res.status(403).send("번역 오류");
+        for(let j =0;j<parseInt(track.length/100);j++){
+            const str = track.slice(j,(j+1)*100).join("\n\n");
+            refinetrack.push(str);
         }
+        // 나머지 부분 추가
+        const moduler = track.slice(parseInt(track.length / 100) * 100).join("\n\n");
+        refinetrack.push(moduler);
 
-        const newTrack = transTrack.data[0].translations.split("\n");
-        if (mode === "srt") {
-            for (let i = 0; i < (timeStamp.length <= newTrack.length ? timeStamp.length : newTrack.length); i++) {
-                let srtStartTime = timeStamp[i].start.replace('.', ',');
-                let srtEndTime = timeStamp[i].end.replace('.', ',');
-                trackSRT += `${i+1}\n${srtStartTime} --> ${srtEndTime}\n${newTrack[i]}\n\n`
+        for(let k = 0; k<refinetrack.length; k++){
+            //번역기에 텍스트를 보내서 transTrack 에 저장
+            const transTrack = await axios.post('https://dmtcloud.kr/translate-text',{
+                // 번역할 언어
+                "to" : req.body.to,
+                // 현재 언어
+                "from" : req.body.from,
+                // 현재 언어 텍스트
+                "text" : refinetrack[k]
+            });
+            if (transTrack?.data[0]?.translations === null){
+                return res.status(403).send("번역 오류");
             }
-            res.status(200).send(trackSRT);
+            //data[0] : to(번역할 언어).transation(번역)
+            let transtracks = transTrack.data[0].translations.split("\n");
+            newTrack = newTrack.concat(transtracks);
+            console.log(newTrack);
+        }
+        // 모드가 vtt 일때
+        if(mode === "srt"){
+            // 타임스태프와 뉴트랙의 길이를 비교해서 더 짧은 길이로 for 문 순회
+            for(let i = 0; i< (timeStamp.length <= newTrack.length ? timeStamp.length : newTrack.length); i++){
+                    // 초 이하 구분자가 . 인걸 , 으로 바꿔주는 코드
+                    let srtStartTime = timeStamp[i].start.replace('.', ',');
+                    let srtEndTime = timeStamp[i].end.replace('.', ',');
+                    // 포맷팅 문단번호 \n 시작시간 --> 끝시간\n 번역한 언어
+                    trackSRT += `${i+1}\n${srtStartTime} --> ${srtEndTime}\n${newTrack[i]}\n\n`
+            }
+            return res.status(200).send(trackSRT);
+        
+        // 모드가 srt 일때, 위에 코드와 동일함
         } else {
             for (let i = 0; i < (timeStamp.length <= newTrack.length ? timeStamp.length : newTrack.length); i++) {
                 let startTime = timeStamp[i].start;
                 let endTime = timeStamp[i].end;
                 trackVTT += `${startTime} --> ${endTime}\n${newTrack[i]}\n\n`;
             }
-            res.status(200).send(trackVTT);
+            // console.log(finaltrack);
+            return res.status(200).send(trackVTT);   
         }
     } catch (error) {
         next(error);
+
     }
+          
+       
 });
+
+
+    // try {
+    //     timeStamp = req.body.timeline;
+    //     track = req.body.track.join("\n\n");
+    //     mode = req.body.mode;
+
+    //     const transTrack = await axios.post('https://dmtcloud.kr/translate-text', {
+    //         "to": req.body.to,
+    //         "from": req.body.from,
+    //         "text": track
+    //     });
+            // es6 객체가 true면 ? 다음 
+    //     if (transTrack?.data[0]?.translations === null) {
+    //         res.status(403).send("번역 오류");
+    //     }
+
+    //     const newTrack = transTrack.data[0].translations.split("\n");
+    //     if (mode === "srt") {
+    //         for (let i = 0; i < (timeStamp.length <= newTrack.length ? timeStamp.length : newTrack.length); i++) {
+    //             let srtStartTime = timeStamp[i].start.replace('.', ',');
+    //             let srtEndTime = timeStamp[i].end.replace('.', ',');
+    //             trackSRT += `${i+1}\n${srtStartTime} --> ${srtEndTime}\n${newTrack[i]}\n\n`
+    //         }
+    //         res.status(200).send(trackSRT);
+    //     } else {
+    //         for (let i = 0; i < (timeStamp.length <= newTrack.length ? timeStamp.length : newTrack.length); i++) {
+    //             let startTime = timeStamp[i].start;
+    //             let endTime = timeStamp[i].end;
+    //             trackVTT += `${startTime} --> ${endTime}\n${newTrack[i]}\n\n`;
+    //         }
+    //         res.status(200).send(trackVTT);
+    //     }
+    // } catch (error) {
+    //     next(error);
+    // }
+
+//
 
 router.get('/download/:filename', async (req, res, next) => {
     try {
