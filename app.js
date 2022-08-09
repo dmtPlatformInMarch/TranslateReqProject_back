@@ -70,10 +70,10 @@ app.use('/', express.static('uploads'));
 
 // 요청 설정
 app.use(express.json({
-    limit: '1mb',
+    limit: '5mb',
 }));
 app.use(express.urlencoded({
-    limit: '1mb',
+    limit: '5mb',
     extended: false 
 }));
 

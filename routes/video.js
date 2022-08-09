@@ -218,7 +218,7 @@ router.post('/recognition', async (req, res, next) => {
             });
         }
     } catch (error) {
-        next(error);
+        next("##### recognition Error #####\n", error);
     }
 });
 
@@ -335,7 +335,6 @@ router.post('/track/format', async (req, res, next) => {
             //data[0] : to(번역할 언어).transation(번역)
             let transtracks = transTrack.data[0].translations.split("\n");
             newTrack = newTrack.concat(transtracks);
-            console.log(newTrack);
         }
         // 모드가 vtt 일때
         if(mode === "srt"){
