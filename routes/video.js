@@ -34,6 +34,40 @@ const msToString = (time) => {
     }
 }
 
+async function translateLang(req,track){
+    try{
+        // var start = new Date().getTime();
+        let tempList = [];
+        for(let k = 0; k<track.length; k++){
+            //번역기에 텍스트를 보내서 transTrack 에 저장
+            const transTrack =  await axios.post('https://dmtcloud.kr/translate-text',{
+                // 번역할 언어
+                "to" : req.body.to,
+                // 현재 언어
+                "from" : req.body.from,
+                // 현재 언어 텍스트
+                "text" : track[k]
+            });
+
+            if (transTrack?.data[0]?.translations === null){
+                return res.status(403).send("번역 오류");
+            }            
+            //data[0] : to(번역할 언어).transation(번역)
+            let transtracks = transTrack.data[0].translations.split("\n");
+            tempList = tempList.concat(transtracks);
+            // console.log(tempList)
+        }
+        var end = new Date().getTime();
+        // console.log("번역시간: "+ end - start);
+        return tempList
+
+    }catch(error){
+        console.log(error)
+    }
+}
+
+
+
 router.get('/', (req, res) => {
     return res.status(200).send('연결 안정적');
 });
@@ -295,48 +329,26 @@ router.post('/track/trans', async (req, res, next) => {
     }
 });
 
+
 // RealTrack에서 오는 API
-router.post('/track/format', async (req, res, next) => {
+router.post('/track/format', async(req, res, next) => {
+
     let timeStamp = [];
     let track = "";
     let mode = "vtt";
     let trackVTT = "WEBVTT\n\n";
     let trackSRT = "";
-    
-    let refinetrack = []
     let newTrack = [];
+
     try{
         timeStamp = req.body.timeline;
         // track = req.body.track.join("\n\n");
         track = req.body.track
         mode = req.body.mode;
-
-        for(let j =0;j<parseInt(track.length/100);j++){
-            const str = track.slice(j,(j+1)*100).join("\n\n");
-            refinetrack.push(str);
-        }
-        // 나머지 부분 추가
-        const moduler = track.slice(parseInt(track.length / 100) * 100).join("\n\n");
-        refinetrack.push(moduler);
-
-        for(let k = 0; k<refinetrack.length; k++){
-            //번역기에 텍스트를 보내서 transTrack 에 저장
-            const transTrack = await axios.post('https://dmtcloud.kr/translate-text',{
-                // 번역할 언어
-                "to" : req.body.to,
-                // 현재 언어
-                "from" : req.body.from,
-                // 현재 언어 텍스트
-                "text" : refinetrack[k]
-            });
-            if (transTrack?.data[0]?.translations === null){
-                return res.status(403).send("번역 오류");
-            }
-            //data[0] : to(번역할 언어).transation(번역)
-            let transtracks = transTrack.data[0].translations.split("\n");
-            newTrack = newTrack.concat(transtracks);
-            console.log(newTrack);
-        }
+        
+        // translateLang 함수가 작동하는데 시간이 걸려서 await 구문으로 기다려야 정상적으로 동작
+        newTrack=newTrack.concat(await translateLang(req,track))   
+        
         // 모드가 vtt 일때
         if(mode === "srt"){
             // 타임스태프와 뉴트랙의 길이를 비교해서 더 짧은 길이로 for 문 순회
@@ -356,9 +368,9 @@ router.post('/track/format', async (req, res, next) => {
                 let endTime = timeStamp[i].end;
                 trackVTT += `${startTime} --> ${endTime}\n${newTrack[i]}\n\n`;
             }
-            // console.log(finaltrack);
             return res.status(200).send(trackVTT);   
         }
+        
     } catch (error) {
         next(error);
 
