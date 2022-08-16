@@ -51,19 +51,16 @@ async function translateLang(req,track){
 
             if (transTrack?.data[0]?.translations === null){
                 return res.status(403).send("번역 오류");
-            }            
+            }
             //data[0] : to(번역할 언어).transation(번역)
-            let transtracks = transTrack.data[0].translations.split("\n");
+            let transtracks = transTrack.data[0].translations.split();
             tempList = tempList.concat(transtracks);
         }
         return tempList
-
     }catch(error){
         console.log(error)
     }
 }
-
-
 
 router.get('/', (req, res) => {
     return res.status(200).send('연결 안정적');
