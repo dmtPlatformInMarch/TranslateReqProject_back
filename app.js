@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const passport = require('passport');
-const session = require('express-session');
+const session = require('cookie-session');
 const cookie = require('cookie-parser');
 const morgan = require('morgan');
 const hpp = require('hpp');
@@ -61,7 +61,7 @@ if (prod) {
     // cors => 해당 주소에 대한 액세스 허용
     app.use(cors({
         origin: 'http://localhost:3080',
-        credentials: false,
+        credentials: true, // 로그인 세션때문에 true 설정
     }));
 }
 
@@ -77,7 +77,7 @@ app.use(express.urlencoded({
 app.use(cookie(process.env.COOKIE_SECRET));
 // session => 세션 정의를 위한 미들웨어. secret = cookie 해석에 필요한 키
 app.use(session({
-    proxy: true,
+    proxy: prod ? true : false,
     resave: false,
     saveUninitialized: false,
     secret: process.env.COOKIE_SECRET,
