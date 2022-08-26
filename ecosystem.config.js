@@ -10,13 +10,13 @@ module.exports = {
             wait_ready: true,
             listen_timeout: 50000,
             max_memory_restart: '2G',
-            env_development: {
-                PROT: '3085',
-                NODE_ENV: 'development'
-            },
             env_production: {
-                PROT: '3085',
+                PORT: 3085,
                 NODE_ENV: 'production'
+            },
+            env_development: {
+                PORT: 3085,
+                NODE_ENV: 'development'
             },
         }
     ],
