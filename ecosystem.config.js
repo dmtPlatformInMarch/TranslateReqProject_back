@@ -11,11 +11,11 @@ module.exports = {
             listen_timeout: 50000,
             max_memory_restart: '2G',
             env_development: {
-                PROT: 3085,
+                PROT: '3085',
                 NODE_ENV: 'development'
             },
             env_production: {
-                PROT: 3085,
+                PROT: '3085',
                 NODE_ENV: 'production'
             },
         }
