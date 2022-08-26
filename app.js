@@ -22,7 +22,7 @@ const testRouter = require('./routes/test');
 const videoRouter = require('./routes/video');
 
 const app = express();
-const process = require('process');
+const Process = require('process');
 
 dotenv.config();
 // force = true 테이블을 전부 날림.
@@ -114,5 +114,5 @@ app.get('/', (req, res) => {
 // localhost = 3085 포트
 app.listen(prod ? process.env.PORT : 3085, () => {
     console.log(`백엔드 서버 ${prod ? process.env.PORT : 3085}번 포트에서 작동 중.`);
-    process.send('ready');
+    Process.send('ready');
 });
