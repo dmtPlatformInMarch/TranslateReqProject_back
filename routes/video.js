@@ -16,6 +16,7 @@ const s3 = new AWS.S3({
     region: 'ap-northeast-2',
     accessKeyId: process.env.S3_ACCESS_KEY_ID,
     secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+    useAccelerateEndpoint: true,
 });
 
 const msToString = (time) => {
@@ -325,6 +326,7 @@ router.post('/track/trans', async (req, res, next) => {
 
 
 // RealTrack에서 오는 API
+// 글자 수 제한에 의한 스플리팅 알고리즘 번역
 router.post('/track/format', async(req, res, next) => {
 
     let timeStamp = [];
@@ -372,44 +374,6 @@ router.post('/track/format', async(req, res, next) => {
           
        
 });
-
-
-    // try {
-    //     timeStamp = req.body.timeline;
-    //     track = req.body.track.join("\n\n");
-    //     mode = req.body.mode;
-
-    //     const transTrack = await axios.post('https://dmtcloud.kr/translate-text', {
-    //         "to": req.body.to,
-    //         "from": req.body.from,
-    //         "text": track
-    //     });
-            // es6 객체가 true면 ? 다음 
-    //     if (transTrack?.data[0]?.translations === null) {
-    //         res.status(403).send("번역 오류");
-    //     }
-
-    //     const newTrack = transTrack.data[0].translations.split("\n");
-    //     if (mode === "srt") {
-    //         for (let i = 0; i < (timeStamp.length <= newTrack.length ? timeStamp.length : newTrack.length); i++) {
-    //             let srtStartTime = timeStamp[i].start.replace('.', ',');
-    //             let srtEndTime = timeStamp[i].end.replace('.', ',');
-    //             trackSRT += `${i+1}\n${srtStartTime} --> ${srtEndTime}\n${newTrack[i]}\n\n`
-    //         }
-    //         res.status(200).send(trackSRT);
-    //     } else {
-    //         for (let i = 0; i < (timeStamp.length <= newTrack.length ? timeStamp.length : newTrack.length); i++) {
-    //             let startTime = timeStamp[i].start;
-    //             let endTime = timeStamp[i].end;
-    //             trackVTT += `${startTime} --> ${endTime}\n${newTrack[i]}\n\n`;
-    //         }
-    //         res.status(200).send(trackVTT);
-    //     }
-    // } catch (error) {
-    //     next(error);
-    // }
-
-//
 
 router.get('/download/:filename', async (req, res, next) => {
     try {
