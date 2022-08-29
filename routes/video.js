@@ -11,14 +11,6 @@ const router = express.Router();
 // MemoryStorage 사용 예상
 const upload = multer();
 
-// 아마존 S3 스토어 연결
-const s3 = new AWS.S3({
-    region: 'ap-northeast-2',
-    accessKeyId: process.env.S3_ACCESS_KEY_ID,
-    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
-    useAccelerateEndpoint: true,
-});
-
 const msToString = (time) => {
     if (time === 0) {
         return "00:00:00.000";
@@ -33,7 +25,7 @@ const msToString = (time) => {
         const oooMill = (mill / 100) >= 1 ? mill : (mill / 10) >= 1 ? `0${mill}` : `00${mill}`;
         return `${ooHour}:${ooMin}:${ooSec}.${oooMill}`;
     }
-}
+};
 
 async function translateLang(req,track){
     try{
@@ -68,11 +60,20 @@ router.get('/', (req, res) => {
 });
 
 router.post('/presigned', upload.single('fileKey'), async (req, res, next) => {
+    // 아마존 S3 스토어 연결
+    const s3 = new AWS.S3({
+        region: 'ap-northeast-2',
+        accessKeyId: process.env.S3_ACCESS_KEY_ID,
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+        useAccelerateEndpoint: true,
+    });
+
     const params = {
         Bucket: process.env.S3_BUCKET,
         Key: 'videoes/' + req.file.originalname,
-        Expires: 60 * 10,
-    }
+        Expires: 60 * 15 ,  // 15 min
+    };
+
     try {
         //console.log(req.file);
         const signedUrlPut = await s3.getSignedUrlPromise("putObject", params);
@@ -83,6 +84,13 @@ router.post('/presigned', upload.single('fileKey'), async (req, res, next) => {
 });
 
 router.delete('/file/delete/:filename', async (req, res, next) => {
+    // 아마존 S3 스토어 연결
+    const s3 = new AWS.S3({
+        region: 'ap-northeast-2',
+        accessKeyId: process.env.S3_ACCESS_KEY_ID,
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+        useAccelerateEndpoint: true,
+    });
     try {
         const deleteRes = await s3.deleteObjects({
             Bucket: process.env.S3_BUCKET,
@@ -105,6 +113,13 @@ router.delete('/file/delete/:filename', async (req, res, next) => {
 router.get('/file/list', async (req, res, next) => {
     let objects = [];
     let listResponse;
+    // 아마존 S3 스토어 연결
+    const s3 = new AWS.S3({
+        region: 'ap-northeast-2',
+        accessKeyId: process.env.S3_ACCESS_KEY_ID,
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+        useAccelerateEndpoint: true,
+    });
 
     try {    
         do {
@@ -124,6 +139,13 @@ router.get('/file/list', async (req, res, next) => {
 });
 
 router.get('/track/:filename', async (req, res, next) => {
+    // 아마존 S3 스토어 연결
+    const s3 = new AWS.S3({
+        region: 'ap-northeast-2',
+        accessKeyId: process.env.S3_ACCESS_KEY_ID,
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+        useAccelerateEndpoint: true,
+    });
     try {
         let timeStamp = [];
         let track = [];
@@ -185,11 +207,20 @@ router.get('/track/:filename', async (req, res, next) => {
 });
 
 router.post('/recognition', async (req, res, next) => {
+    // 아마존 S3 스토어 연결
+    const s3 = new AWS.S3({
+        region: 'ap-northeast-2',
+        accessKeyId: process.env.S3_ACCESS_KEY_ID,
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+        useAccelerateEndpoint: true,
+    });
+
     let timeStamp = [];
     let trackArray = [];
     let trackVTT = "WEBVTT\n\n";
     let trackSRT = "";
     let count = 1;
+
     try {
         //console.log("받은 파일 URL : ", req.body.fileURL);
         const naverResponse = await axios.post(`${process.env.NAVER_INVOKE_URL}/recognizer/url`, {
@@ -252,6 +283,13 @@ router.post('/recognition', async (req, res, next) => {
 });
 
 router.post('/track/create', async (req, res, next) => {
+    // 아마존 S3 스토어 연결
+    const s3 = new AWS.S3({
+        region: 'ap-northeast-2',
+        accessKeyId: process.env.S3_ACCESS_KEY_ID,
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+        useAccelerateEndpoint: true,
+    });
     try {
         await s3.putObject({
             Bucket: process.env.S3_BUCKET,
@@ -376,6 +414,13 @@ router.post('/track/format', async(req, res, next) => {
 });
 
 router.get('/download/:filename', async (req, res, next) => {
+    // 아마존 S3 스토어 연결
+    const s3 = new AWS.S3({
+        region: 'ap-northeast-2',
+        accessKeyId: process.env.S3_ACCESS_KEY_ID,
+        secretAccessKey: process.env.S3_SECRET_ACCESS_KEY,
+        useAccelerateEndpoint: true,
+    });
     try {
         const fn = () => {
             if (req.headers['user-agent'].includes("MSIE") || req.headers['user-agent'].includes("Trident")) {
