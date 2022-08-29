@@ -3,7 +3,7 @@ module.exports = {
         {
             name: 'WAS',
             script: './app.js',
-            instances: 2,
+            instances: 4,
             exec_mode: 'cluster',
             autorestart: true,
             watch: false,
