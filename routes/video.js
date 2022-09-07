@@ -3,7 +3,6 @@ const multer = require('multer');
 const AWS = require('aws-sdk');
 const axios = require('axios');
 const iconvLite = require('iconv-lite');
-const { ResetQueue } = require('pdfjs-dist');
 
 const router = express.Router();
 

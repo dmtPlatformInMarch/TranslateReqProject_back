@@ -20,11 +20,12 @@ const adminRouter = require('./routes/admin');
 const extractRouter = require('./routes/extract');
 const testRouter = require('./routes/test');
 const videoRouter = require('./routes/video');
+const externalApiRouter = require('./routes/externalapi');
 
 const app = express();
 const Process = require('process');
-
 dotenv.config();
+
 // force = true 테이블을 전부 날림.
 db.sequelize.sync({ force: false })
     .then(() => {
@@ -104,6 +105,7 @@ app.use('/admin', adminRouter);
 app.use('/extract', extractRouter);
 app.use('/test', testRouter);
 app.use('/video', videoRouter);
+app.use('/api', externalApiRouter);
 
 app.get('/', (req, res) => {
     res.status(200).send('[DMTlabs] Web Translate Service Backend');
