@@ -101,9 +101,12 @@ router.delete('/file/delete/:filename', async (req, res, next) => {
                 Quiet: false
             },
         }, (err, data) => {
-            if (err) { console.log(err); }
+            if (err) { 
+                console.log(err);
+                return res.status(400).send('파일 삭제 실패');
+            }
             console.log('s3 deleteObject ', data);
-            return res.status(200).send('파일 삭제');
+            return res.status(200).send('파일 삭제 성공');
         });
     } catch (error) {
         next(error);
@@ -282,6 +285,13 @@ router.post('/recognition', async (req, res, next) => {
     }
 });
 
+/*
+    request body {
+        fileName: String, --> 파일 이름
+        ext: String, --> 파일 확장자 (모드)
+        track: String --> 파일 내용
+    }
+*/
 router.post('/track/create', async (req, res, next) => {
     // 아마존 S3 스토어 연결
     const s3 = new AWS.S3({
@@ -366,7 +376,6 @@ router.post('/track/trans', async (req, res, next) => {
 // RealTrack에서 오는 API
 // 글자 수 제한에 의한 스플리팅 알고리즘 번역
 router.post('/track/format', async(req, res, next) => {
-
     let timeStamp = [];
     let track = "";
     let mode = "vtt";
