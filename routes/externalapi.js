@@ -38,7 +38,7 @@ router.post('/translate-text', async (req, res, next) => {
         });
 
         if (response.status === 200) {
-            let logData = `STATE : SUCCESS\nDATE : ${new Date().toString()}\nCHARACTER : ${req.body.text.length}\n\n`;
+            let logData = `STATE : SUCCESS\nCHARACTER : ${req.body.text.length}\nDATE : ${new Date().toString()}\n\n`;
 
             fs.appendFile('../api_log/company/log.txt', logData, err => {
                 if (err) {
