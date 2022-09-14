@@ -317,8 +317,24 @@ router.post('/track/trans', async (req, res, next) => {
     try {
         const tracks = req.body.track;
         let newTrack = [];
-        // 로직
-        if (tracks.length > 180) {
+        for (let i = 0; i < tracks.length; i++) {
+            const transTrack = await axios.post('https://dmtcloud.kr/translate-text', {
+                "to": req.body.to,
+                "from": req.body.from,
+                "text": tracks[i]
+            });
+            if (transTrack?.data[0]?.translations === null) {
+                return res.status(403).send("번역 오류");
+            }
+            newTrack[i] = transTrack.data[0].translations;
+        }
+        res.status(200).json({
+            "from": req.body.from,
+            "to": req.body.to,
+            "translations": newTrack
+        });
+        // 구 로직 ==> 문자배열을 한번에 합쳐서 번역하는 작업임.
+        /*if (tracks.length > 180) {
             let count = parseInt(tracks.length / 100);
             for (let i = 0; i < count; i++) {
                 const text = tracks.slice(i*100, (i+1)*100).join("\n\n");
@@ -365,7 +381,7 @@ router.post('/track/trans', async (req, res, next) => {
                 "to": req.body.to,
                 "translations": newTrack
             });
-        }
+        }*/
     } catch (error) {
         next(error);
     }
