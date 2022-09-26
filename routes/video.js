@@ -223,11 +223,23 @@ router.post('/recognition', async (req, res, next) => {
     let trackSRT = "";
     let count = 1;
 
+    let naverLanguageCode = "enko"
+
+    if (req.body.req_code === "ko") {
+        naverLanguageCode = "ko-KR"
+    } else if (req.body.req_code === "en") {
+        naverLanguageCode = "en-US"
+    } else if (req.body.req_code === "ja") {
+        naverLanguageCode = "ja"
+    } else {
+        naverLanguageCode = "enko"
+    }
+
     try {
         //console.log("받은 파일 URL : ", req.body.fileURL);
         const naverResponse = await axios.post(`${process.env.NAVER_INVOKE_URL}/recognizer/url`, {
             "url": req.body.fileURL,
-            "language": "enko",
+            "language": naverLanguageCode,
             "completion": 'sync',
             "diarization.enable": 'false',
             "resultToObs": 'false'

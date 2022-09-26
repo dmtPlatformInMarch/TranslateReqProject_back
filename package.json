@@ -12,6 +12,7 @@
   "author": "DMT",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/speech": "^5.0.2",
     "adm-zip": "^0.5.9",
     "aws-sdk": "^2.1113.0",
     "axios": "^0.27.2",

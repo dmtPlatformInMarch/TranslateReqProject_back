@@ -5,6 +5,10 @@ const pdfjsLib = require('pdfjs-dist/build/pdf');
 const WordExtractor = require('word-extractor');
 const AWS = require('aws-sdk');
 const { assert } = require('pdfjs-dist/build/pdf.worker');
+const speech = require('@google-cloud/speech');
+const fs = require('fs');
+const stream = require('stream');
+const { Readable } = require('stream');
 
 const router = express.Router();
 
@@ -165,204 +169,121 @@ router.get('/file/extract/:filename', async (req, res, next) => {
     }
 });
 
-
-router.get('/next',function(req,res,next){
-    console.log('step1');
-    next();
-})
-
-
-
-router.get('/add/:num',(req,res) => {
-    async function add(){
-        var 프로미스 = new Promise(function(성공,실패){
-            var result = Number(req.params.num) * 10;
-            실패(result);
-        });
-
+router.post('/googleTest', async (req, res, next) => {
     try {
-        var view = await 프로미스;
-            console.log(view)
-            res.send(view)
-    } catch {
-        res.send("실패반환")
-    }
-}
-    add()
+        const client = new speech.SpeechClient();
 
-})
+        const filename = './uploads/test.weba';
+        const encoding = "WEBM_OPUS";
+        const sampleRateHertz = 48000;
+        const languageCode = "en-US";
 
+        /*const config = {
+            encoding: encoding,
+            sampleRateHertz: sampleRateHertz,
+            languageCode: languageCode,
+            audioChannelCount: 2
+        };
 
-// router.get('/:input',(req,res) => {
-//     if(req.params.input == "test"){
-//         res.status(200).send("testing")   
-//     }
-//     var result = 0;
-//     var num = Number(req.params.input);
-//     console.log(typeof(num))
-//     for(let i= 0;i<=num;i++){
-//         result += i;
-//     }
-//     res.send(console.log(result));
-// })
-
-router.get('/Lookup',(req,res) => {
-            const gradeList = [{
-                id : 0,
-                name: "민준",
-                grade : "수학",
-                score : "A", 
-                },
-            {
-                id : 1,
-                name: "서연",
-                grade : "영어",
-                score : "B",
-            },
-            {
-                id : 2,
-                name: "서준",
-                grade : "사회",
-                score : "F",
-            },
-
-            {
-                id : 3,
-                name: "서윤",
-                grade : "수학",
-                score : "B",
-            },
-            {
-                id : 4,
-                name: "도윤",
-                grade : "과학",
-                score : "A",
-            },
-            {
-                id : 5,
-                name: "지우",
-                grade : "국어",
-                score : "C",
-            },
-            {
-                id : 6,
-                name: "예준",
-                grade : "과학",
-                score : "F",
-            },
-            {
-                id : 7,
-                name: "서현",
-                grade : "사회",
-                score : "D",
-            },
-            {
-                id : 8,
-                name: "주원",
-                grade : "국어",
-                score : "C",
-            },
-            {
-                id : 9,
-                name: "민서",
-                grade : "수학",
-                score : "A",
-            },            
-        ]
-        res.status(200).json(gradeList)
-})
-
-router.get('/:grade', (req,res) => {
-    inputData = req.params.grade
-    outputData = new Array();
-
-    const gradeList = [{
-                    id : 0,
-                    name: "민준",
-                    grade : "수학",
-                    score : "A", 
-                    },
-                {
-                    id : 1,
-                    name: "서연",
-                    grade : "영어",
-                    score : "B",
-                },
-                {
-                    id : 2,
-                    name: "서준",
-                    grade : "사회",
-                    score : "F",
-                },
-
-                {
-                    id : 3,
-                    name: "서윤",
-                    grade : "수학",
-                    score : "B",
-                },
-                {
-                    id : 4,
-                    name: "도윤",
-                    grade : "과학",
-                    score : "A",
-                },
-                {
-                    id : 5,
-                    name: "지우",
-                    grade : "국어",
-                    score : "C",
-                },
-                {
-                    id : 6,
-                    name: "예준",
-                    grade : "과학",
-                    score : "F",
-                },
-                {
-                    id : 7,
-                    name: "서현",
-                    grade : "사회",
-                    score : "D",
-                },
-                {
-                    id : 8,
-                    name: "주원",
-                    grade : "국어",
-                    score : "C",
-                },
-                {
-                    id : 9,
-                    name: "민서",
-                    grade : "수학",
-                    score : "A",
-                },            
-            ]
+        const audio = {
+            content: fs.readFileSync(filename).toString('base64'),
+        };
         
-        var tmpList = new Array();
-        gradeList.forEach(element => {
-            if(element.grade == inputData){
-                tmpList.push(element.id)
-            }
-        });
+        const request = {
+            config: config,
+            audio: audio,
+        };
+        
+        // Detects speech in the audio file
+        const [response] = await client.recognize(request);
+        const transcription = response.results
+            .map(result => result.alternatives[0].transcript)
+            .join('\n');
+        console.log('Transcription: ', transcription);
+        
+        return res.status(200).send(transcription);*/
+        
+        const request = {
+            config: {
+                encoding: encoding,
+                sampleRateHertz: sampleRateHertz,
+                languageCode: languageCode,
+            },
+            interimResults: false,
+        };
 
-        console.log(tmpList)
-    
-        for(let j = 0;j<tmpList.length;j++){   
-            for(let i =0;i<gradeList.length;i++){
-                if(gradeList[i].id == tmpList[j]){
-                    outputData.push(gradeList[i].name);
-                }
-                
-            }
-        }
+        const recognizeStream = client
+            .streamingRecognize(request)
+            .on('error', console.error)
+            .on('data', data => {
+                console.log(
+                    `Transcription: ${data.results[0].alternatives[0].transcript}`
+                );
+            })
+            .on('end', () => {
+                return res.status(200).send("백엔드 작업 완료");
+            })
+        
+        fs.createReadStream(filename).pipe(recognizeStream);
+    } catch (err) {
+        console.log(err);
+        next(err);
+        return res.status(500).send("recognize error");
+    }
+});
 
-    // req = request
-    // res = response
-    // nrl의 변수를 받고 싶을 땐 req.params.number
-    // 보낼때는 res.status(200).send(보내고 싶은 데이터);
-    res.status(200).send(outputData);
-    
+router.post('/blobSending', upload.single('fileKey'), async (req, res, next) => {
+    try {
+        const client = new speech.SpeechClient();
+
+        const encoding = "WEBM_OPUS";
+        const sampleRateHertz = 48000;
+        const languageCode = "en-US";
+
+        const config = {
+            encoding: encoding,
+            sampleRateHertz: sampleRateHertz,
+            languageCode: languageCode,
+            audioChannelCount: 2
+        };
+
+        const audio = {
+            content: req.file.buffer.toString('base64'),
+        };
+        
+        const request = {
+            config: config,
+            audio: audio,
+        };
+        /*
+            // Detects speech in the audio file
+            const [response] = await client.recognize(request);
+            const transcription = response.results
+                .map(result => result.alternatives[0].transcript)
+                .join('\n');
+            //console.log('Transcription: ', transcription);
+        */
+        const recognizeStream = client
+            .streamingRecognize(request)
+            .on('error', console.error)
+            .on('data', data => {
+                console.log(
+                    `Transcription: ${data.results[0].alternatives[0].transcript}`
+                );
+                transcription = data.results[0].alternatives[0].transcript;
+            })
+            .on('end', () => {
+                return res.status(200).send({ text: transcription });
+            })
+
+        let transcription = "";
+        const bufferStream = new stream.PassThrough(); //Readable.from(req.file.buffer);
+        bufferStream.end(req.file.buffer);
+        bufferStream.pipe(recognizeStream);
+        //return res.status(200).send({ text: transcription });
+    } catch (err) {
+        next(err);
+    }
 });
 
 module.exports = router;
