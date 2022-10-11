@@ -67,7 +67,7 @@ router.post('/login', isNotLoggedIn, (req, res, next) => {
                 return next(err);
             }
             // 쿠키는 header, body는 옵션 -> 여기선 유저 정보를 내려줌.
-            return res.json({ 'id': user.id, 'nickname': user.nickname, 'email': user.email, 'permission': user.permission });
+            return res.json({ 'id': user.id, 'nickname': user.nickname, 'email': user.email, 'permission': user.permission, 'organization': user.organization });
         });
     })(req, res, next);
 });
