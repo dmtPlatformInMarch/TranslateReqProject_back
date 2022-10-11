@@ -12,7 +12,7 @@ module.exports = () => {
         try {
             const exUser = await db.Users.findOne({
                 where: { email },
-                attributes: ['id', 'nickname', 'email', 'password', 'permission'],
+                attributes: ['id', 'nickname', 'email', 'password', 'permission', 'organization'],
             });
             // done 순서 (error, 성공, 실패)
             if (!exUser) {

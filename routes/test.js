@@ -9,6 +9,9 @@ const speech = require('@google-cloud/speech');
 const fs = require('fs');
 const stream = require('stream');
 const { Readable } = require('stream');
+const puppeteer = require('puppeteer');
+const ytdl = require('ytdl-core');
+const { urlencoded } = require('express');
 
 const router = express.Router();
 
@@ -244,7 +247,7 @@ router.post('/blobSending', upload.single('fileKey'), async (req, res, next) => 
             encoding: encoding,
             sampleRateHertz: sampleRateHertz,
             languageCode: languageCode,
-            audioChannelCount: 2
+            audioChannelCount: 2,
         };
 
         const audio = {
@@ -254,6 +257,7 @@ router.post('/blobSending', upload.single('fileKey'), async (req, res, next) => 
         const request = {
             config: config,
             audio: audio,
+            interimResults: true,
         };
         /*
             // Detects speech in the audio file
@@ -268,21 +272,45 @@ router.post('/blobSending', upload.single('fileKey'), async (req, res, next) => 
             .on('error', console.error)
             .on('data', data => {
                 console.log(
-                    `Transcription: ${data.results[0].alternatives[0].transcript}`
+                    `flag: ${JSON.stringify(data.results[0].isFinal)}\nTranscription: ${JSON.stringify(data.results[0].alternatives[0])}`
                 );
                 transcription = data.results[0].alternatives[0].transcript;
+                final = data.results[0].isFinal;
             })
             .on('end', () => {
-                return res.status(200).send({ text: transcription });
+                return res.status(200).send({
+                    flag: final,
+                    text: transcription 
+                });
             })
 
         let transcription = "";
+        let final = true;
         const bufferStream = new stream.PassThrough(); //Readable.from(req.file.buffer);
         bufferStream.end(req.file.buffer);
         bufferStream.pipe(recognizeStream);
         //return res.status(200).send({ text: transcription });
     } catch (err) {
         next(err);
+    }
+});
+
+function delay(time) {
+    return new Promise(function (resolve) {
+        setTimeout(resolve, time);
+    });
+}
+
+router.get('/download', async (req, res, next) => {
+    try {
+        const info = await ytdl.getInfo(req.query.youtubeURL);
+        const filename = encodeURI(info.videoDetails.title);
+        const contentHeader = `attachment; filename*=UTF-8''${filename}.mp4`;
+        res.setHeader("Content-Disposition", contentHeader);
+        ytdl(req.query.youtubeURL).pipe(res);
+    } catch (err) {
+        console.log(err);
+        next();
     }
 });
 

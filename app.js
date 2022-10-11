@@ -108,7 +108,7 @@ app.use('/video', videoRouter);
 app.use('/api', externalApiRouter);
 
 app.get('/', (req, res) => {
-    res.status(200).send('[DMTlabs] Web Translate Service Backend');
+    return res.status(200).send('[DMTlabs] Web Translate Service Backend');
 });
 
 // http = 80 포트

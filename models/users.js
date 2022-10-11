@@ -14,10 +14,14 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
         },
         permission: {
-            type: DataTypes.ENUM('user', 'admin'),
+            type: DataTypes.ENUM('user', 'admin', 'company'),
             defaultValue: 'user',
             allowNull: false,
-        }// createdAt, updatedAt 자동생성
+        },
+        organization: {
+            type: DataTypes.STRING(20),
+            allowNull: false
+        }
     }, {
         // 한글 사용
         charset: 'utf8',

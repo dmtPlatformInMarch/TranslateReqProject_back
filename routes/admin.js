@@ -1,6 +1,7 @@
 const express = require('express');
 const AWS = require('aws-sdk');
 const iconvLite = require('iconv-lite');
+const { isOrganization } = require('./middlewares');
 
 const db = require('../models');
 const router = express.Router();
@@ -130,6 +131,19 @@ router.post('/stateSet', async (req, res, next) => {
         }
     );
     return res.send('번역 상태 변경');
+});
+
+router.post('/regist/token', isOrganization, async (req, res, next) => {
+    try {
+        await db.Companys.create({
+            organization: req.body.organization,
+            token: req.body.token
+        });
+        return res.send('토큰 등록');
+    } catch (err) {
+        console.log(err);
+        return res.status(200).send('등록 실패');
+    }
 });
 
 module.exports = router;

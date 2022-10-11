@@ -3,10 +3,10 @@ const AWS = require('aws-sdk');
 const iconvLite = require('iconv-lite');
 const axios = require('axios');
 const fs = require('fs');
+const spawn = require('child_process').spawn;
 
 const db = require('../models');
 const router = express.Router();
-
 /*
     request Body
     {
@@ -27,8 +27,23 @@ router.get('/', (req, res) => {
     return res.send("api is ready!!!");
 });
 
+/*
+*   [log 기록 형식]
+*   
+*   - api 정상 응답 -
+*   STATE : SUCCESS
+*   CHARACTER : (translate text length)
+*   DATE : (API calling Date)
+*   
+*   - api 에러 응답 -
+*   STATE : ERROR
+*   DATE : (API calling Date)
+*   ERROR : ['translator error', 'api error']
+* 
+*/
 router.post('/translate-text', async (req, res, next) => {
     try {
+        // 로그 기록
         !fs.existsSync('../api_log')&&fs.mkdirSync('../api_log');
         !fs.existsSync('../api_log/company')&&fs.mkdirSync('../api_log/company');
         const response = await axios.post('https://dmtcloud.kr/translate-text', {
@@ -61,6 +76,7 @@ router.post('/translate-text', async (req, res, next) => {
             });
 
             console.log("Translator Error");
+            next(err);
             return res.status(402).send("Translator Error");
         }
     } catch (err) {
@@ -72,9 +88,35 @@ router.post('/translate-text', async (req, res, next) => {
                 return;
             }
         });
-        console.log(err);
+
+        console.log("API Error");
         next(err);
-        return res.status(401).send("API ERROR");
+        return res.status(401).send("API Error");
+    }
+});
+
+router.get('/shell', (req, res, next) => {
+    try {
+        console.log(process.env.PATH);
+        let task = spawn('/home/updateUsage.sh');
+        let result = "";
+
+        task.stdout.on('data', function (data) {
+            result = data.toString()
+        });
+        task.stderr.on('data', function (data) {
+            console.log('stderr: ', data.toString());
+            result = data.toString();
+        })
+        task.on('exit', (code) => {
+            console.log('child process exited with code', code.toString());
+            return res.status(200).json({
+                code: 200,
+                result: result
+            });
+        })
+    } catch (err) {
+
     }
 });
 

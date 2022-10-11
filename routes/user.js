@@ -8,7 +8,13 @@ const router = express.Router();
 
 router.get('/', isLoggedIn, async (req, res, next) => {
     const user = req.user;
-    res.json({ 'id': user.id, 'nickname': user.nickname, 'email': user.email, 'permission': user.permission });
+    return res.json({ 
+        'id': user.id, 
+        'nickname': user.nickname, 
+        'email': user.email, 
+        'permission': user.permission,
+        'organization': user.organization,
+    });
 });
 
 // 회원가입
@@ -32,6 +38,7 @@ router.post('/signup', isNotLoggedIn, async (req, res, next) => {
             email: req.body.email,
             password: hash,
             nickname: req.body.nickname,
+            organization: req.body.organization,
         });
         return res.status(201).json(newUser);
     } catch (err) {
