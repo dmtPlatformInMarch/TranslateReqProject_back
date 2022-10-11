@@ -28,7 +28,7 @@ dotenv.config();
 
 // force = true 테이블을 전부 날림.
 // alert = true 테이블의 변경사항을 보고 유지하면서 바꿈. (그래도 위험.)
-db.sequelize.sync({ alert: true })
+db.sequelize.sync({ force: true })
     .then(() => {
         console.log('DB 연결');
     })
