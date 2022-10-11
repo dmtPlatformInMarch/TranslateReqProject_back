@@ -7,7 +7,16 @@ const spawn = require('child_process').spawn;
 
 const db = require('../models');
 const router = express.Router();
+
+router.get('/', (req, res) => {
+    return res.send("api is ready!!!");
+});
+
 /*
+    request header
+    {
+        toekn: 발급 토큰
+    }
     request Body
     {
         from : 원본 언어,
@@ -22,12 +31,8 @@ const router = express.Router();
             translations: 번역된 텍스트
         },
     ]
-*/
-router.get('/', (req, res) => {
-    return res.send("api is ready!!!");
-});
 
-/*
+*******************************************************
 *   [log 기록 형식]
 *   
 *   - api 정상 응답 -
@@ -78,7 +83,8 @@ router.post('/translate-text', async (req, res, next) => {
                 }
             });
 
-            return res.status(200).send({
+            return res.status(200).json({
+                to: req.body.to,
                 text: response.data[0].translations
             });
         } else {
