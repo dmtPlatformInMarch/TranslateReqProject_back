@@ -42,10 +42,26 @@ router.get('/', (req, res) => {
 * 
 */
 router.post('/translate-text', async (req, res, next) => {
+    if (req.headers.token === undefined) {
+        return res.json({
+            code: 403,
+            error: 'Empty Token in Headers'
+        });
+    }
     try {
+        const findOrganization = await db.Companys.findOne({
+            where: { token: req.headers.token }
+        });
+        if (findOrganization === null) {
+            return res.json({
+                code: 404,
+                error: "Not found Token"
+            });
+        }
+        console.log();
         // 로그 기록
         !fs.existsSync('../api_log')&&fs.mkdirSync('../api_log');
-        !fs.existsSync('../api_log/company')&&fs.mkdirSync('../api_log/company');
+        !fs.existsSync(`../api_log/${findOrganization.organization}`)&&fs.mkdirSync(`../api_log/${findOrganization.organization}`);
         const response = await axios.post('https://dmtcloud.kr/translate-text', {
             from: req.body.from,
             to: req.body.to,
@@ -55,7 +71,7 @@ router.post('/translate-text', async (req, res, next) => {
         if (response.status === 200) {
             let logData = `STATE : SUCCESS\nCHARACTER : ${req.body.text.length}\nDATE : ${new Date().toString()}\n\n`;
 
-            fs.appendFile('../api_log/company/log.txt', logData, err => {
+            fs.appendFile(`../api_log/${findOrganization.organization}/log.txt`, logData, err => {
                 if (err) {
                     console.log(err);
                     return;
@@ -68,7 +84,7 @@ router.post('/translate-text', async (req, res, next) => {
         } else {
             let logData = `STATE : ERROR\nDATE : ${new Date().toString()}\nERROR : translator error\n\n`;
 
-            fs.appendFile('../api_log/company/log.txt', logData, err => {
+            fs.appendFile(`../api_log/${findOrganization.organization}/log.txt`, logData, err => {
                 if (err) {
                     console.log(err);
                     return;
@@ -82,7 +98,7 @@ router.post('/translate-text', async (req, res, next) => {
     } catch (err) {
         let logData = `STATE : ERROR\nDATE : ${new Date().toString()}\nERROR : api error\n\n`;
 
-        fs.appendFile('../api_log/company/log.txt', logData, err => {
+        fs.appendFile(`../api_log/${findOrganization.organization}/log.txt`, logData, err => {
             if (err) {
                 console.log(err);
                 return;
@@ -98,7 +114,7 @@ router.post('/translate-text', async (req, res, next) => {
 router.get('/shell', (req, res, next) => {
     try {
         console.log(process.env.PATH);
-        let task = spawn('/home/updateUsage.sh');
+        let task = spawn('../updateUsage.sh');
         let result = "";
 
         task.stdout.on('data', function (data) {

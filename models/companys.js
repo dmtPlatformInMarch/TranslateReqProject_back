@@ -7,6 +7,11 @@ module.exports = (sequelize, DataTypes) => {
         token: {
             type: DataTypes.STRING(100),
             allowNull: false
+        },
+        usage: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0
         }
     }, {
         // 한글 사용
