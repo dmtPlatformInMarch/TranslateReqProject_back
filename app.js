@@ -86,8 +86,8 @@ app.use(session({
     secret: process.env.COOKIE_SECRET,
     cookie: {
         httpOnly: true,
-        secure:  prod ? true : false,
-        domain: prod && '.dmtlabs.kr',
+        //secure:  prod ? true : false,
+        //domain: prod && '.dmtlabs.kr',
     }
 }));
 
