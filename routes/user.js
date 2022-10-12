@@ -8,6 +8,9 @@ const router = express.Router();
 
 router.get('/', isLoggedIn, async (req, res, next) => {
     const user = req.user;
+
+    console.log("로그인 정보 : ", user);
+
     return res.json({ 
         'id': user.id, 
         'nickname': user.nickname, 
@@ -67,6 +70,7 @@ router.post('/login', isNotLoggedIn, (req, res, next) => {
                 return next("쿠키 정보를 내리는 중 오류 발생 : ", err);
             }
             // 쿠키는 header, body는 옵션 -> 여기선 유저 정보를 내려줌.
+            console.log("쿠키로 내리는 유저 정보: ", user);
             return res.json({ 
                 'id': user.id, 
                 'nickname': user.nickname, 

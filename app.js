@@ -34,6 +34,7 @@ db.sequelize.sync({ force: false })
     .catch((err) => {
         console.log(err);
     });
+    
 passportConfig();
 
 const whitelist = ["https://dmtlabs.kr", "https://www.dmtlabs.kr", "http://dmtlabs.kr", "http://www.dmtlabs.kr"]
