@@ -80,12 +80,12 @@ app.use(express.urlencoded({
 app.use(cookie(process.env.COOKIE_SECRET));
 // session => 세션 정의를 위한 미들웨어. secret = cookie 해석에 필요한 키
 app.use(session({
-    proxy: true,
+    proxy: prod ? true : false,
     resave: false,
     saveUninitialized: false,
     secret: process.env.COOKIE_SECRET,
     cookie: {
-        //httpOnly: true,
+        httpOnly: true,
         secure:  prod ? true : false,
         domain: prod && '.dmtlabs.kr',
     },
