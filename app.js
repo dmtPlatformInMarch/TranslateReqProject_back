@@ -85,10 +85,9 @@ app.use(session({
     saveUninitialized: false,
     secret: process.env.COOKIE_SECRET,
     cookie: {
-        secureProxy: true,
         httpOnly: true,
         secure:  prod ? true : false,
-        domain: prod && '.dmtlabs.kr',
+        sameSite: prod ? 'none' : false
     }
 }));
 
