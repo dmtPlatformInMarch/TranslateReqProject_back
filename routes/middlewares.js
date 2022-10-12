@@ -2,7 +2,7 @@
 const db = require('../models');
 
 exports.isLoggedIn = (req, res, next) => {
-    console.log("로그인 여부 : ", req.isAuthenticated());
+    console.log("is로그인 여부 : ", req.isAuthenticated());
     if (req.isAuthenticated()) {
         return next();
     }
@@ -10,6 +10,7 @@ exports.isLoggedIn = (req, res, next) => {
 };
 
 exports.isNotLoggedIn = (req, res, next) => {
+    console.log("isNot로그인 여부 : ", req.isAuthenticated());
     if (!req.isAuthenticated()) {
         return next();
     }
