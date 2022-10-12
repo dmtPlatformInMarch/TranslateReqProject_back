@@ -8,8 +8,14 @@ const router = express.Router();
 
 router.get('/', isLoggedIn, async (req, res, next) => {
     const user = req.user;
-    console.log("로그인 정보 : ", user);
-    return res.json({ 
+    console.log("로그인 정보 : ", JSON.stringify({
+        'id': user.id, 
+        'nickname': user.nickname, 
+        'email': user.email, 
+        'permission': user.permission,
+        'organization': user.organization,
+    }));
+    res.json({ 
         'id': user.id, 
         'nickname': user.nickname, 
         'email': user.email, 
@@ -39,9 +45,9 @@ router.post('/signup', isNotLoggedIn, async (req, res, next) => {
             email: req.body.email,
             password: hash,
             nickname: req.body.nickname,
-            organization: req.body.organization ? req.body.organization : "",
+            organization: req.body.organization
         });
-        return res.status(200).json(newUser);
+        return res.status(201).json(newUser);
     } catch (err) {
         console.log(err);
         return next(err);
@@ -54,27 +60,22 @@ router.post('/login', isNotLoggedIn, (req, res, next) => {
     passport.authenticate('local', (err, user, info) => {
         // error 발생
         if (err) {
-            console.log("passport Authenticate 에러 : ", err);
-            return next(err);
+            console.log("서버 에러 : ", err);
+            next(err);
         }
         // 잘못된 정보 요청
         if (info) {
+            console.log("로직 에러 : ", info.reason);
             return res.status(401).send(info.reason);
         }
+        // req.login으로 passport.serializeUser() 실행
         return req.login(user, async (err) => {
             // 세션에 사용자 정보 저장, 저장 방법 = serializeUser
             if (err) {
-                console.log(err);
-                return next("쿠키 정보를 내리는 중 오류 발생 : ", err);
+                console.log("쿠키 정보를 내리는 중 오류 발생 : ", err);
+                return next(err);
             }
             // 쿠키는 header, body는 옵션 -> 여기선 유저 정보를 내려줌.
-            console.log("쿠키로 내리는 유저 정보: ", JSON.stringify({ 
-                'id': user.id, 
-                'nickname': user.nickname, 
-                'email': user.email, 
-                'permission': user.permission, 
-                'organization': user.organization 
-            }));
             return res.json({ 
                 'id': user.id, 
                 'nickname': user.nickname, 

@@ -88,7 +88,7 @@ app.use(session({
         httpOnly: true,
         secure:  prod ? true : false,
         domain: prod && '.dmtlabs.kr',
-    },
+    }
 }));
 
 // passport => 로그인 모듈
