@@ -87,7 +87,8 @@ app.use(session({
     cookie: {
         httpOnly: true,
         secure:  prod ? true : false,
-        sameSite: prod ? 'none' : false
+        domain: prod && '.dmtlabs.kr',
+        sameSite: prod ? 'none' : false,
     }
 }));
 
