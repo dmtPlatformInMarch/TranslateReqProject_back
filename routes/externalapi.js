@@ -8,8 +8,35 @@ const spawn = require('child_process').spawn;
 const db = require('../models');
 const router = express.Router();
 
-router.get('/', (req, res) => {
+router.get('/', (req, res, next) => {
     return res.send("api is ready!!!");
+});
+
+router.get('/check-token', async (req, res, next) => {
+    try {
+        const tokenEff = await db.Companys.findOne({
+            where: {
+                organization: req.query.organization,
+                token: req.headers.token 
+            }
+        });
+        
+        if (tokenEff === null) {
+            return res.json({
+                code: 401,
+                status: "ERROR",
+                message: "This Token is not vaild."
+            });
+        }
+
+        return res.json({
+            code: 200,
+            status: "SUCCESS",
+            message: "This Token is valid."
+        });
+    } catch (err) {
+
+    }
 });
 
 /*
