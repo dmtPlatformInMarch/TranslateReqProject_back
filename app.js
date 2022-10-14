@@ -88,7 +88,6 @@ app.use(session({
         httpOnly: true,
         secure:  prod ? true : false,
         domain: prod && '.dmtlabs.kr',
-        sameSite: prod ? 'none' : false,
     }
 }));
 
