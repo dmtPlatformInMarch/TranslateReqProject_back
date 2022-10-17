@@ -4,19 +4,20 @@ const iconvLite = require('iconv-lite');
 const axios = require('axios');
 const fs = require('fs');
 const spawn = require('child_process').spawn;
+const { vaildToken } = require('./middlewares');
 
 const db = require('../models');
 const router = express.Router();
 
-router.get('/', (req, res, next) => {
+router.get('/', vaildToken, (req, res, next) => {
     return res.send("api is ready!!!");
 });
 
-router.get('/check-token', async (req, res, next) => {
+router.get('/check-token', vaildToken, async (req, res, next) => {
     try {
         const tokenEff = await db.Companys.findOne({
             where: {
-                organization: req.query.organization,
+                organization: req.headers.organization,
                 token: req.headers.token 
             }
         });
@@ -73,7 +74,7 @@ router.get('/check-token', async (req, res, next) => {
 *   ERROR : ['translator error', 'api error']
 * 
 */
-router.post('/translate-text', async (req, res, next) => {
+router.post('/translate-text', vaildToken, async (req, res, next) => {
     if (req.headers.token === undefined) {
         return res.json({
             code: 403,
@@ -103,7 +104,7 @@ router.post('/translate-text', async (req, res, next) => {
         if (response.status === 200) {
             let logData = `STATE : SUCCESS\nCHARACTER : ${req.body.text.length}\nDATE : ${new Date().toString()}\n\n`;
 
-            fs.appendFile(`../api_log/${findOrganization.organization}/log.txt`, logData, err => {
+            fs.appendFile(`../api_log/${findOrganization.organization}/text_log.txt`, logData, err => {
                 if (err) {
                     console.log(err);
                     return;
@@ -117,7 +118,7 @@ router.post('/translate-text', async (req, res, next) => {
         } else {
             let logData = `STATE : ERROR\nDATE : ${new Date().toString()}\nERROR : translator error\n\n`;
 
-            fs.appendFile(`../api_log/${findOrganization.organization}/log.txt`, logData, err => {
+            fs.appendFile(`../api_log/${findOrganization.organization}/text_log.txt`, logData, err => {
                 if (err) {
                     console.log(err);
                     return;
@@ -131,7 +132,7 @@ router.post('/translate-text', async (req, res, next) => {
     } catch (err) {
         let logData = `STATE : ERROR\nDATE : ${new Date().toString()}\nERROR : api error\n\n`;
 
-        fs.appendFile(`../api_log/${findOrganization.organization}/log.txt`, logData, err => {
+        fs.appendFile(`../api_log/${findOrganization.organization}/text_log.txt`, logData, err => {
             if (err) {
                 console.log(err);
                 return;
@@ -165,7 +166,8 @@ router.get('/shell', (req, res, next) => {
             });
         })
     } catch (err) {
-
+        console.log(err);
+        next(err);
     }
 });
 
