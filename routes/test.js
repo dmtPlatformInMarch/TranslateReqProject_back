@@ -310,7 +310,7 @@ router.get('/download', async (req, res, next) => {
         ytdl(req.query.youtubeURL).pipe(res);
     } catch (err) {
         console.log(err);
-        next();
+        next(err);
     }
 });
 

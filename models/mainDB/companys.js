@@ -1,7 +1,7 @@
 module.exports = (sequelize, DataTypes) => {
     const Companys = sequelize.define('Companys', {
         organization: {
-            type: DataTypes.STRING(20),
+            type: DataTypes.STRING(100),
             allowNull: false
         },
         token: {

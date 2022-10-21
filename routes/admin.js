@@ -3,7 +3,7 @@ const AWS = require('aws-sdk');
 const iconvLite = require('iconv-lite');
 const { isOrganization } = require('./middlewares');
 
-const db = require('../models');
+const db = require('../models')['mainDB'];
 const router = express.Router();
 
 // 아마존 S3 스토어 연결
@@ -121,6 +121,7 @@ router.delete('/user/delete/:email', async (req, res, next) => {
     }
 });
 
+// 번역 상태 변경
 router.post('/stateSet', async (req, res, next) => {
     await db.Requests.update(
         {
@@ -133,6 +134,7 @@ router.post('/stateSet', async (req, res, next) => {
     return res.send('번역 상태 변경');
 });
 
+// 기업 & 토큰 등록
 router.post('/regist/token', isOrganization, async (req, res, next) => {
     try {
         await db.Companys.create({

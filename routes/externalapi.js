@@ -5,19 +5,20 @@ const axios = require('axios');
 const fs = require('fs');
 const spawn = require('child_process').spawn;
 const { vaildToken } = require('./middlewares');
+const bcrypt = require('bcrypt');
 
-const db = require('../models');
+const db = require('../models')['mainDB'];
 const router = express.Router();
 
 router.get('/', vaildToken, (req, res, next) => {
     return res.send("api is ready!!!");
 });
 
-router.get('/check-token', vaildToken, async (req, res, next) => {
+router.post('/check-token', vaildToken, async (req, res, next) => {
     try {
         const tokenEff = await db.Companys.findOne({
             where: {
-                organization: req.headers.organization,
+                organization: req.body.organization,
                 token: req.headers.token 
             }
         });
@@ -75,12 +76,6 @@ router.get('/check-token', vaildToken, async (req, res, next) => {
 * 
 */
 router.post('/translate-text', vaildToken, async (req, res, next) => {
-    if (req.headers.token === undefined) {
-        return res.json({
-            code: 403,
-            error: 'Empty Token in Headers'
-        });
-    }
     try {
         const findOrganization = await db.Companys.findOne({
             where: { token: req.headers.token }
@@ -91,10 +86,10 @@ router.post('/translate-text', vaildToken, async (req, res, next) => {
                 error: "Not found Token"
             });
         }
-        console.log();
         // 로그 기록
+        const dirOrganization = findOrganization.organization.replace(/ /g, "_");
         !fs.existsSync('../api_log')&&fs.mkdirSync('../api_log');
-        !fs.existsSync(`../api_log/${findOrganization.organization}`)&&fs.mkdirSync(`../api_log/${findOrganization.organization}`);
+        !fs.existsSync(`../api_log/${dirOrganization}`)&&fs.mkdirSync(`../api_log/${dirOrganization}`);
         const response = await axios.post('https://dmtcloud.kr/translate-text', {
             from: req.body.from,
             to: req.body.to,
@@ -104,10 +99,17 @@ router.post('/translate-text', vaildToken, async (req, res, next) => {
         if (response.status === 200) {
             let logData = `STATE : SUCCESS\nCHARACTER : ${req.body.text.length}\nDATE : ${new Date().toString()}\n\n`;
 
-            fs.appendFile(`../api_log/${findOrganization.organization}/text_log.txt`, logData, err => {
+            fs.appendFile(`../api_log/${dirOrganization}/text_log.txt`, logData, err => {
                 if (err) {
                     console.log(err);
                     return;
+                }
+            });
+            db.Companys.update({
+                usage: findOrganization.usage + req.body.text.length
+            }, {
+                where: {
+                    organization: findOrganization.organization
                 }
             });
 
@@ -118,7 +120,7 @@ router.post('/translate-text', vaildToken, async (req, res, next) => {
         } else {
             let logData = `STATE : ERROR\nDATE : ${new Date().toString()}\nERROR : translator error\n\n`;
 
-            fs.appendFile(`../api_log/${findOrganization.organization}/text_log.txt`, logData, err => {
+            fs.appendFile(`../api_log/${dirOrganization}/text_log.txt`, logData, err => {
                 if (err) {
                     console.log(err);
                     return;
@@ -132,7 +134,7 @@ router.post('/translate-text', vaildToken, async (req, res, next) => {
     } catch (err) {
         let logData = `STATE : ERROR\nDATE : ${new Date().toString()}\nERROR : api error\n\n`;
 
-        fs.appendFile(`../api_log/${findOrganization.organization}/text_log.txt`, logData, err => {
+        fs.appendFile(`../api_log/${dirOrganization}/text_log.txt`, logData, err => {
             if (err) {
                 console.log(err);
                 return;
@@ -145,10 +147,22 @@ router.post('/translate-text', vaildToken, async (req, res, next) => {
     }
 });
 
+/*
+*   updateUsage.sh 의 파일 경로가
+*   해당 명령줄의 파라미터임.
+*   = 그 회사 파일의 text_log.txt에 로깅을 함.
+*   
+*   파일 경로가 상대 위치이기에 DMT_back 폴더에서 실행 기준이므로
+*   API 호출 시 ../ 경로에 있는 api_log 폴더를 찾아야 함.
+*   -> 그냥 update.sh 실행시 경로가 맞지 않아서 오류.
+*   
+*   회사 폴더, 모두 업데이트를 해줘야 함.
+*   api_log의 모든 회사 디렉토리를 순회하며 update해야 함.
+*   -> 회사 디렉토리를 순회하며 updateUsage.sh "회사" 를 실행하는 쉘 파일 제작
+*/
 router.get('/shell', (req, res, next) => {
     try {
-        console.log(process.env.PATH);
-        let task = spawn('../updateUsage.sh');
+        let task = spawn(`sh`, ['../updateUsage.sh', `${decodeURI(req.query.organization).replace(/ /g, "_")}`]);
         let result = "";
 
         task.stdout.on('data', function (data) {

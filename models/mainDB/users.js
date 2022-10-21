@@ -13,14 +13,19 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING(20),
             allowNull: false,
         },
+        organization: {
+            type: DataTypes.STRING(20),
+            allowNull: false
+        },
         permission: {
             type: DataTypes.ENUM('user', 'admin', 'company'),
             defaultValue: 'user',
             allowNull: false,
         },
-        organization: {
-            type: DataTypes.STRING(20),
-            allowNull: false
+        accessToken: {
+            type: DataTypes.TEXT,
+            defaultValue: 'Null',
+            allowNull: true
         }
     }, {
         // 한글 사용

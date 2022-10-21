@@ -6,8 +6,7 @@ const path = require('path');
 const AWS = require('aws-sdk');
 const multerS3 = require('multer-s3');
 
-const db = require('../models');
-const { isLoggedIn } = require('./middlewares');
+const db = require('../models')['mainDB'];
 
 const router = express.Router();
 
@@ -44,7 +43,7 @@ router.patch('/:id', async (req, res, next) => {
 });
 
 // 의뢰 삭제
-router.delete('/:id', isLoggedIn, async (req, res, next) => {
+router.delete('/:id', async (req, res, next) => {
   try {
     await db.Requests.destroy({
       where: {
@@ -60,7 +59,7 @@ router.delete('/:id', isLoggedIn, async (req, res, next) => {
 
 // 번역 파일 업로드
 // 2022.03.11 확인
-router.post('/file', isLoggedIn, upload.array('fileKey'), async (req, res, next) => {
+router.post('/file', upload.array('fileKey'), async (req, res, next) => {
   return res.json(req.files.map((v) => decodeURI(v.location)));
 });
 
@@ -133,7 +132,7 @@ router.post('/extract/txt', fileUpload(), (req, res, next) => {
 });
 
 // 번역 파일 삭제
-router.delete('/file/delete', isLoggedIn, async (req, res, next) => {
+router.delete('/file/delete', async (req, res, next) => {
   try {
     if (req.body.files.length === 1) {
       // 단일 파일의 경우
@@ -173,7 +172,7 @@ router.delete('/file/delete', isLoggedIn, async (req, res, next) => {
 
 // 번역 의뢰
 // router 시행 전에는 deSerialUser가 시행된다.
-router.post('/', isLoggedIn, async (req, res, next) => {
+router.post('/', async (req, res, next) => {
   try {
     const newRequest = await db.Requests.create({
       name: req.body.name,

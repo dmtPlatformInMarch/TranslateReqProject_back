@@ -1,13 +1,18 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const passport = require('passport');
-const db = require('../models');
-const { isNotLoggedIn, isLoggedIn } = require('./middlewares');
+const db = require('../models')['mainDB'];
+const jwt = require('jsonwebtoken');
 
 const router = express.Router();
 
-router.get('/', isLoggedIn, async (req, res, next) => {
-    const user = req.user;
+// 유저 정보 전송
+router.get('/', passport.authenticate('jwt', {session: false}), async (req, res, next) => {
+    const user = await db.Users.findOne({
+        where: { 
+            accessToken: req.headers.authorization
+        }
+    });
     console.log("로그인 정보 : ", JSON.stringify({
         'id': user.id, 
         'nickname': user.nickname, 
@@ -15,7 +20,7 @@ router.get('/', isLoggedIn, async (req, res, next) => {
         'permission': user.permission,
         'organization': user.organization,
     }));
-    res.json({ 
+    return res.json({ 
         'id': user.id, 
         'nickname': user.nickname, 
         'email': user.email, 
@@ -25,7 +30,7 @@ router.get('/', isLoggedIn, async (req, res, next) => {
 });
 
 // 회원가입
-router.post('/signup', isNotLoggedIn, async (req, res, next) => {
+router.post('/signup', async (req, res, next) => {
     try {
         const hash = await bcrypt.hash(req.body.password, 10);
         const exUser = await db.Users.findOne({
@@ -47,7 +52,7 @@ router.post('/signup', isNotLoggedIn, async (req, res, next) => {
             nickname: req.body.nickname,
             organization: req.body.organization
         });
-        return res.status(201).json(newUser);
+        return res.status(201).json("회원가입 성공");
     } catch (err) {
         console.log(err);
         return next(err);
@@ -56,48 +61,47 @@ router.post('/signup', isNotLoggedIn, async (req, res, next) => {
 
 // 로그인
 // 쿠키 정보는 connect.sid란 이름으로 req.login이 알아서 내려줌.
-router.post('/login', isNotLoggedIn, (req, res, next) => {
-    passport.authenticate('local', (err, user, info) => {
+router.post('/login', async (req, res, next) => {
+    passport.authenticate('local', { session: false }, (err, user, info) => {
         // error 발생
-        if (err) {
-            console.log("서버 에러 : ", err);
-            next(err);
-        }
-        // 잘못된 정보 요청
-        if (info) {
-            console.log("로직 에러 : ", info.reason);
-            return res.status(401).send(info.reason);
+        if (err || !user || info) {
+            console.log("서버 에러 : ", err, info);
+            return res.status(403).json({
+                code: 403,
+                message: info.reason
+            });
         }
         // req.login으로 passport.serializeUser() 실행
-        return req.login(user, async (err) => {
-            // 세션에 사용자 정보 저장, 저장 방법 = serializeUser
+        return req.login(user, { session: false }, async (err) => {
             if (err) {
-                console.log("쿠키 정보를 내리는 중 오류 발생 : ", err);
+                console.log("로그인 중 오류 발생 : ", err);
                 return next(err);
             }
-            // 쿠키는 header, body는 옵션 -> 여기선 유저 정보를 내려줌.
-            return res.json({ 
-                'id': user.id, 
-                'nickname': user.nickname, 
-                'email': user.email, 
-                'permission': user.permission, 
-                'organization': user.organization 
+            const token = jwt.sign({
+                id: user.id,
+                email: user.email,
+                nickname: user.nickname,
+                organization: user.organization,
+                permission: user.permission
+            }, process.env.JWT_TOKEN_SECRET);
+            // 토큰을 내려줌.
+            await db.Users.update({
+                accessToken: token
+            },
+            {
+                where: {
+                    email: user.email
+                },
             });
+            return res.json({ token });
         });
     })(req, res, next);
 });
 
 // 로그아웃
-router.post('/logout', isLoggedIn, (req, res) => {
-    if (req.isAuthenticated()) {
-        req.logout();
-        // 세션 지우기는 선택
-        //req.session.destroy();   // -> express-session 방식
-        res.session = null;         // -> cookie-session 방식
-        return res.status(200).send('로그아웃 되었습니다.');
-    } else {
-        return res.status(401).send('Auth가 유효하지 않습니다.');
-    }
+router.post('/logout', (req, res) => {
+    req.logout();
+    return res.status(200).send('로그아웃 되었습니다.');
 });
 
 module.exports = router;
