@@ -23,7 +23,7 @@ router.get('/', (req, res) => {
 });
 
 router.post('/docx', fileUpload(), async (req, res, next) => {
-    //return res.status(200).send('docx 파일은 미구현입니다.');
+
     if (!req.files && !req.files.extFile) {
         res.status(400);
         res.end();
@@ -31,9 +31,6 @@ router.post('/docx', fileUpload(), async (req, res, next) => {
     
     const docxFile = req.files.extFile;
     var newFile = new JSZip;
-    // var zip = fs.readFileSync(docxFile.data, 'binary');
-    // var xmlString = zip.file("word/document.xml").asText();
-    // console.log(xmlString);
     
     await newFile.loadAsync(docxFile.data).then( async (zip) => {
         await zip.file('word/document.xml').async("string").then(
@@ -46,6 +43,7 @@ router.post('/docx', fileUpload(), async (req, res, next) => {
                 var layout = [];
                 
                 for (let i = 0; i < wps.length; i++) {
+                    // 레이아웃 가져올 때 쓰는 정규식 => 코드 수정시 필요할 수도 있음.
                     // wps[i].match(/<w:r>(.|\n)*?<\/w:r>/g) !== null && 
                     if (wps[i].match(/<w:t(.|\n)*?<\/w:t>/g) !== null) {
                         var m = wps[i].match(/<w:r>(.|\n)*?<\/w:r>/g);
@@ -86,8 +84,6 @@ router.post('/docx', fileUpload(), async (req, res, next) => {
                         var str = res.data[0].translations
                         tranAfter.push(str.substring(0, str.length-1));
                     }
-                    // console.log(tranBefore);
-                    // console.log(tranAfter);
                 } catch(e) {
                     //console.error(e);
                 }
@@ -102,6 +98,7 @@ router.post('/docx', fileUpload(), async (req, res, next) => {
                 var idx = 0;
                 for (let i = 0; i < wps.length; i++) {
                     var para = '';
+                    // 레이아웃 가져올 때 필요할 수 있는 정규식
                     //wps[i].match(/<w:r>(.|\n)*?<\/w:r>/g) !== null && 
                     if (wps[i].match(/<w:t(.|\n)*?<\/w:t>/g) !== null) {
                         para = wps[i].replace(ungreedy, layout[idx]);
@@ -127,8 +124,6 @@ router.post('/docx', fileUpload(), async (req, res, next) => {
     });
     
     res.send(fsdocx);
-    //console.log("fsdocx" + fsdocx);
-    //fs.writeFile(newName, fsdocx, function() {});
 
     const BUCKET_NAME = 'dmtlabs-translate-files';
     const s3 = new AWS.S3({
@@ -143,10 +138,6 @@ router.post('/docx', fileUpload(), async (req, res, next) => {
         Body: fsdocx
     };
 
-    // , {
-    //     ContentDisposition: 'attachment; filename*utf-8\' \'' + encodeURI(fileName),
-    //     ContentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    // },
     s3.upload(params, function(err, data) {
         if (err) {throw err;}
         console.log(`File uploaded successfully. ${data.Location}`);
